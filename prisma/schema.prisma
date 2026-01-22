@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Script {
+  id          String   @id @default(uuid())
+  title       String
+  parameters  String   // JSON string
+  content     String   // JSON string
+  modelUsed   String
+  createdAt   DateTime @default(now())
+}
+
+model FieldConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique // e.g., 'visualTheme', 'cameraAngle'
+  label       String   // e.g., '视觉主题', '运镜视角'
+  options     String   // JSON array of strings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

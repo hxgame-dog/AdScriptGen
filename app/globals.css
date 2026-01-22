@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Notion-like colors */
+  --foreground-rgb: 55, 53, 47; /* #37352F */
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+  --gray-bg: #F7F7F5;
+  --border-color: #E9E9E7;
+  --hover-bg: #EFEFED;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(200, 200, 200, 0.4);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(180, 180, 180, 0.6);
+  }
+
+  /* Notion-like utility classes */
+  .notion-card {
+    @apply bg-white border border-[var(--border-color)] rounded-sm shadow-[rgba(15,15,15,0.05)_0px_0px_0px_1px,rgba(15,15,15,0.1)_0px_3px_6px,rgba(15,15,15,0.2)_0px_9px_24px] transition-all;
+  }
+  .notion-border {
+    @apply border border-[#E9E9E7];
+  }
+  .notion-input {
+    @apply w-full p-2 rounded-sm border border-[rgba(55,53,47,0.16)] bg-[rgba(242,241,238,0.6)] text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[rgba(35,131,226,0.57)] transition-all;
+  }
+  .notion-button {
+    @apply px-3 py-1.5 rounded text-sm font-medium transition-colors select-none cursor-pointer;
+  }
+  .notion-button-primary {
+    @apply bg-[#2383E2] text-white hover:bg-[#1B6CB8];
+  }
+  .notion-button-secondary {
+    @apply hover:bg-[var(--hover-bg)] text-[rgb(var(--foreground-rgb))];
+  }
 }

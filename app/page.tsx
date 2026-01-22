@@ -1,65 +1,472 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import ConfigPanel from '@/components/ConfigPanel';
+import ScriptResult from '@/components/ScriptResult';
+import HistoryList from '@/components/HistoryList';
 
 export default function Home() {
+  const [models, setModels] = useState<any[]>([]);
+  const [scripts, setScripts] = useState<any[]>([]);
+  const [currentScript, setCurrentScript] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveTitle, setSaveTitle] = useState('');
+  const [streamingContent, setStreamingContent] = useState('');
+  
+  // Rename Modal State
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameTitle, setRenameTitle] = useState('');
+  const [renameId, setRenameId] = useState<string | null>(null);
+
+  // Fetch models and scripts on mount
+  useEffect(() => {
+    fetch('/api/models')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setModels(data);
+      })
+      .catch(err => console.error("Failed to load models", err));
+
+    fetchScripts();
+  }, []);
+
+  const fetchScripts = () => {
+    // Fetch from API first
+    fetch('/api/scripts')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+            // Also load from LocalStorage and merge
+            const localHistory = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+            // Merge by ID, prefer API if duplicates (or just show all)
+            // For simplicity, let's just use what we have. 
+            // If API works, we use API. If API returns empty but we have local, maybe user is on Vercel.
+            
+            // Actually, if we are in a hybrid mode where API might fail (Vercel), 
+            // we should probably prioritize LocalStorage if API returns empty array but LocalStorage has data?
+            // Or just concat them? 
+            // Let's concat unique items.
+            const apiIds = new Set(data.map((s: any) => s.id));
+            const uniqueLocal = localHistory.filter((s: any) => !apiIds.has(s.id));
+            
+            setScripts([...data, ...uniqueLocal].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        }
+      })
+      .catch(err => {
+          console.error("Failed to load history from API", err);
+          // Fallback to LocalStorage
+          const localHistory = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+          setScripts(localHistory);
+      });
+  };
+
+  const handleGenerate = async (params: any) => {
+    setLoading(true);
+    setCurrentScript(null); // Clear previous
+    setStreamingContent(''); // Clear previous stream
+    
+    try {
+      // Structure the request body to match API expectation
+      const { apiKey, model, ...restParams } = params;
+      const requestBody = {
+        apiKey,
+        model,
+        parameters: restParams
+      };
+
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '生成失败');
+      }
+
+      // Handle Streaming
+      if (!res.body) throw new Error('No response body');
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let fullText = '';
+
+      while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          if (value) {
+              const chunk = decoder.decode(value, { stream: true });
+              fullText += chunk;
+              setStreamingContent(prev => prev + chunk);
+          }
+      }
+
+      // Try to parse the full JSON
+      // Sometimes Gemini wraps JSON in ```json ... ```
+      let jsonStr = fullText;
+      if (fullText.includes('```json')) {
+          jsonStr = fullText.split('```json')[1].split('```')[0];
+      } else if (fullText.includes('```')) {
+          jsonStr = fullText.split('```')[1].split('```')[0];
+      }
+      
+      let data;
+      try {
+        data = JSON.parse(jsonStr);
+      } catch (e) {
+        console.error("JSON Parse Error", e);
+        console.log("Raw text:", fullText); // Debugging
+        // Try to recover using regex
+        const match = fullText.match(/\{[\s\S]*\}/);
+        if (match) {
+            try {
+                data = JSON.parse(match[0]);
+            } catch(e2) {
+                throw new Error('生成的脚本格式有误，请重试');
+            }
+        } else {
+            throw new Error('生成的脚本格式有误，请重试');
+        }
+      }
+
+      // Check for required fields
+      if (!data.script_content || !Array.isArray(data.script_content)) {
+          // Sometimes AI puts it inside 'structure' or other keys
+          if (data.structure && data.structure.script_content) {
+              data = data.structure;
+          } else if (data.content && data.content.script_content) {
+              data = data.content;
+          } else {
+             // Try to find any array that looks like script content
+             const possibleArray = Object.values(data).find(val => Array.isArray(val) && val.length > 0 && (val[0] as any).visual);
+             if (possibleArray) {
+                 data.script_content = possibleArray;
+             }
+          }
+      }
+
+      // Construct a full script object including parameters for saving later
+      // safeParams should be the actual parameters used for generation
+      const safeParams = restParams;
+      
+      const newScript = {
+          ...data,
+          parameters: safeParams, // Save params object without API key
+          modelUsed: params.model,
+          title: `${params.gameName} - ${params.visualTheme} - ${params.scriptFlow?.split('(')[0].trim() || '脚本'}`
+      };
+      
+      setCurrentScript(newScript);
+      setStreamingContent(''); // Clear stream once parsed successfully
+
+    } catch (err: any) {
+      alert(err.message || '生成失败');
+      // Keep streaming content visible if it failed to parse, so user can at least see the raw output
+      if (streamingContent) {
+          // Do not clear streaming content on error so user can see what happened
+      } else {
+          setStreamingContent(''); 
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (!currentScript) return;
+    setSaveTitle(currentScript.title || "未命名脚本");
+    setShowSaveModal(true);
+  };
+
+  const handleConfirmSave = async () => {
+    if (!currentScript) return;
+    
+    setSaving(true);
+    try {
+      const res = await fetch('/api/scripts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: saveTitle || currentScript.title,
+          parameters: currentScript.parameters,
+          content: { 
+            meta_analysis: currentScript.meta_analysis, 
+            script_content: currentScript.script_content 
+          },
+          modelUsed: currentScript.modelUsed,
+        }),
+      });
+      
+      if (res.ok) {
+        fetchScripts();
+        setShowSaveModal(false);
+        // alert('保存成功'); // Optional, maybe toast is better but alert is fine for now if supported, or just close modal
+      } else {
+        // Fallback to LocalStorage if API fails (e.g. Vercel read-only DB)
+        try {
+            const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+            const newHistoryItem = {
+                id: Date.now().toString(),
+                title: saveTitle || currentScript.title,
+                parameters: JSON.stringify(currentScript.parameters),
+                content: JSON.stringify({
+                    meta_analysis: currentScript.meta_analysis,
+                    script_content: currentScript.script_content
+                }),
+                modelUsed: currentScript.modelUsed,
+                createdAt: new Date().toISOString()
+            };
+            localStorage.setItem('adscript_history', JSON.stringify([newHistoryItem, ...savedScripts]));
+            
+            // Refresh local state manually since we are not using fetchScripts for LS
+            setScripts(prev => [newHistoryItem, ...prev]);
+            setShowSaveModal(false);
+            // alert('已保存到本地存储 (Database Unavailable)');
+        } catch (lsErr) {
+             alert('保存失败，且无法保存到本地存储');
+        }
+      }
+    } catch (err) {
+       // Fallback to LocalStorage on error too
+       try {
+            const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+            const newHistoryItem = {
+                id: Date.now().toString(),
+                title: saveTitle || currentScript.title,
+                parameters: JSON.stringify(currentScript.parameters),
+                content: JSON.stringify({
+                    meta_analysis: currentScript.meta_analysis,
+                    script_content: currentScript.script_content
+                }),
+                modelUsed: currentScript.modelUsed,
+                createdAt: new Date().toISOString()
+            };
+            localStorage.setItem('adscript_history', JSON.stringify([newHistoryItem, ...savedScripts]));
+            
+            setScripts(prev => [newHistoryItem, ...prev]);
+            setShowSaveModal(false);
+       } catch (lsErr) {
+            alert('保存出错');
+       }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleHistorySelect = (script: any) => {
+    let parsedContent = script.content;
+    if (typeof script.content === 'string') {
+        try {
+            parsedContent = JSON.parse(script.content);
+        } catch(e) { console.error("Parse error content", e); }
+    }
+    
+    let parsedParams = script.parameters;
+    if (typeof script.parameters === 'string') {
+        try {
+            parsedParams = JSON.parse(script.parameters);
+        } catch(e) { console.error("Parse error params", e); }
+    }
+
+    setCurrentScript({
+        ...script, // id, title, modelUsed, createdAt
+        ...parsedContent, // meta_analysis, script_content
+        parameters: parsedParams
+    });
+  };
+
+  const handleHistoryDelete = async (id: string) => {
+    if (!confirm('确定要删除这条记录吗？')) return;
+    try {
+        const res = await fetch(`/api/scripts?id=${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            fetchScripts();
+            if (currentScript?.id === id) setCurrentScript(null);
+        } else {
+             // Try deleting from LocalStorage if API failed
+             const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+             const newScripts = savedScripts.filter((s: any) => s.id !== id);
+             localStorage.setItem('adscript_history', JSON.stringify(newScripts));
+             setScripts(prev => prev.filter(s => s.id !== id));
+             if (currentScript?.id === id) setCurrentScript(null);
+        }
+    } catch (e) {
+        // Try deleting from LocalStorage on error
+         const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+         const newScripts = savedScripts.filter((s: any) => s.id !== id);
+         localStorage.setItem('adscript_history', JSON.stringify(newScripts));
+         setScripts(prev => prev.filter(s => s.id !== id));
+         if (currentScript?.id === id) setCurrentScript(null);
+    }
+  };
+
+  const handleHistoryRename = (id: string, currentTitle: string) => {
+      setRenameId(id);
+      setRenameTitle(currentTitle);
+      setShowRenameModal(true);
+  };
+
+  const handleConfirmRename = async () => {
+      if (!renameId || !renameTitle) return;
+      const id = renameId;
+      const newTitle = renameTitle;
+      
+      try {
+          const res = await fetch('/api/scripts', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, title: newTitle })
+          });
+          if (res.ok) {
+              fetchScripts();
+              if (currentScript?.id === id) {
+                  setCurrentScript((prev: any) => ({ ...prev, title: newTitle }));
+              }
+          } else {
+               // Try rename in LocalStorage
+               const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+               const updatedScripts = savedScripts.map((s: any) => s.id === id ? { ...s, title: newTitle } : s);
+               localStorage.setItem('adscript_history', JSON.stringify(updatedScripts));
+               setScripts(prev => prev.map(s => s.id === id ? { ...s, title: newTitle } : s));
+               if (currentScript?.id === id) {
+                  setCurrentScript((prev: any) => ({ ...prev, title: newTitle }));
+               }
+          }
+      } catch (e) {
+           // Try rename in LocalStorage on error
+           const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+           const updatedScripts = savedScripts.map((s: any) => s.id === id ? { ...s, title: newTitle } : s);
+           localStorage.setItem('adscript_history', JSON.stringify(updatedScripts));
+           setScripts(prev => prev.map(s => s.id === id ? { ...s, title: newTitle } : s));
+           if (currentScript?.id === id) {
+              setCurrentScript((prev: any) => ({ ...prev, title: newTitle }));
+           }
+      } finally {
+          setShowRenameModal(false);
+          setRenameId(null);
+          setRenameTitle('');
+      }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-white font-sans text-[#37352F] flex flex-col h-screen overflow-hidden">
+      <header className="h-12 border-b border-[#E9E9E7] flex items-center px-4 justify-between flex-shrink-0 bg-white z-20">
+        <div className="flex items-center space-x-2">
+          <div className="w-5 h-5 bg-[#37352F] text-white flex items-center justify-center rounded-sm text-xs font-bold">A</div>
+          <h1 className="text-sm font-medium tracking-tight text-[#37352F]">AdScriptGen</h1>
+          <span className="text-[#E9E9E7]">/</span>
+          <p className="text-xs text-[#37352F] opacity-60">AI 赛车游戏广告素材生成器</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="flex items-center space-x-3">
+           <span className="text-[10px] text-[#37352F] opacity-40 px-1.5 py-0.5 rounded border border-[#E9E9E7]">v1.0.0</span>
+           <div className="w-6 h-6 rounded-full bg-[#F7F7F5] flex items-center justify-center text-xs text-[#37352F] border border-[#E9E9E7]">F</div>
         </div>
-      </main>
-    </div>
+      </header>
+
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Left Column: Config */}
+        <div className="w-[300px] flex-shrink-0 h-full min-h-0">
+          <ConfigPanel 
+            onGenerate={handleGenerate} 
+            loading={loading} 
+            models={models} 
+          />
+        </div>
+
+        {/* Middle Column: Result */}
+        <div className="flex-1 h-full min-h-0 relative">
+          <ScriptResult 
+            script={currentScript} 
+            onSave={handleSaveClick} 
+            saving={saving}
+            streamingContent={streamingContent}
+          />
+        </div>
+
+        {/* Right Column: History */}
+        <div className="w-[260px] flex-shrink-0 h-full min-h-0">
+          <HistoryList 
+            scripts={scripts} 
+            onSelect={handleHistorySelect} 
+            onDelete={handleHistoryDelete}
+            onRename={handleHistoryRename}
+          />
+        </div>
+      </div>
+
+      {/* Save Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div className="bg-white rounded-md shadow-xl w-[400px] border border-[#E9E9E7] p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-semibold text-[#37352F] mb-4">保存脚本</h3>
+            <div className="mb-6">
+              <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">标题</label>
+              <input 
+                value={saveTitle}
+                onChange={(e) => setSaveTitle(e.target.value)}
+                className="notion-input w-full"
+                placeholder="输入脚本标题..."
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button 
+                onClick={() => setShowSaveModal(false)}
+                className="notion-button hover:bg-[#EFEFED] text-[#37352F]"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleConfirmSave}
+                disabled={saving}
+                className="notion-button notion-button-primary"
+              >
+                {saving ? '保存中...' : '确认保存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Rename Modal */}
+      {showRenameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div className="bg-white rounded-md shadow-xl w-[400px] border border-[#E9E9E7] p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-semibold text-[#37352F] mb-4">重命名脚本</h3>
+            <div className="mb-6">
+              <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">新标题</label>
+              <input 
+                value={renameTitle}
+                onChange={(e) => setRenameTitle(e.target.value)}
+                className="notion-input w-full"
+                placeholder="输入新标题..."
+                autoFocus
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleConfirmRename();
+                    if (e.key === 'Escape') setShowRenameModal(false);
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button 
+                onClick={() => setShowRenameModal(false)}
+                className="notion-button hover:bg-[#EFEFED] text-[#37352F]"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleConfirmRename}
+                className="notion-button notion-button-primary"
+              >
+                确认修改
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
