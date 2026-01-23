@@ -186,6 +186,37 @@ export default function Home() {
     if (!currentScript) return;
     
     setSaving(true);
+    let savedScript: any = null;
+
+    // 1. Always save to LocalStorage first (as a reliable backup/cache)
+    try {
+        const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+        
+        // Generate a temporary ID for LS (will be overwritten by API ID if API succeeds, or used as is)
+        const tempId = Date.now().toString();
+        
+        const newHistoryItem = {
+            id: tempId,
+            title: saveTitle || currentScript.title,
+            parameters: typeof currentScript.parameters === 'string' ? currentScript.parameters : JSON.stringify(currentScript.parameters),
+            content: typeof currentScript.content === 'string' ? currentScript.content : JSON.stringify({
+                meta_analysis: currentScript.meta_analysis,
+                script_content: currentScript.script_content
+            }),
+            modelUsed: currentScript.modelUsed,
+            createdAt: new Date().toISOString()
+        };
+
+        // We save it temporarily. If API succeeds, we might want to update the ID, but for now this ensures data safety.
+        // Actually, let's wait for API response. If API fails, we use this. 
+        // If API succeeds, we use the API's returned object (which has the real DB ID).
+        // But to be super safe against ephemeral API (Cloudflare), we should save to LS anyway.
+        
+        savedScript = newHistoryItem;
+    } catch (e) {
+        console.error("LS Pre-save failed", e);
+    }
+
     try {
       const res = await fetch('/api/scripts', {
         method: 'POST',
@@ -202,58 +233,49 @@ export default function Home() {
       });
       
       if (res.ok) {
-        fetchScripts();
-        setShowSaveModal(false);
-        // alert('保存成功'); // Optional, maybe toast is better but alert is fine for now if supported, or just close modal
-      } else {
-        // Fallback to LocalStorage if API fails (e.g. Vercel read-only DB)
-        try {
-            const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
-            const newHistoryItem = {
-                id: Date.now().toString(),
-                title: saveTitle || currentScript.title,
-                parameters: JSON.stringify(currentScript.parameters),
-                content: JSON.stringify({
-                    meta_analysis: currentScript.meta_analysis,
-                    script_content: currentScript.script_content
-                }),
-                modelUsed: currentScript.modelUsed,
-                createdAt: new Date().toISOString()
+        const apiData = await res.json();
+        // API Saved successfully. Use the ID from API.
+        if (savedScript) {
+            savedScript.id = apiData.id; // Update ID to match DB
+            // Update other fields if API normalized them
+            savedScript.createdAt = apiData.createdAt; 
+        } else {
+             // Fallback if LS pre-save failed
+             savedScript = {
+                ...apiData,
+                parameters: typeof apiData.parameters === 'string' ? apiData.parameters : JSON.stringify(apiData.parameters),
+                content: typeof apiData.content === 'string' ? apiData.content : JSON.stringify(apiData.content),
             };
-            localStorage.setItem('adscript_history', JSON.stringify([newHistoryItem, ...savedScripts]));
-            
-            // Refresh local state manually since we are not using fetchScripts for LS
-            setScripts(prev => [newHistoryItem, ...prev]);
-            setShowSaveModal(false);
-            // alert('已保存到本地存储 (Database Unavailable)');
-        } catch (lsErr) {
-             alert('保存失败，且无法保存到本地存储');
         }
+        
+        fetchScripts(); // Reload from API to get any other updates
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-       // Fallback to LocalStorage on error too
-       try {
-            const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
-            const newHistoryItem = {
-                id: Date.now().toString(),
-                title: saveTitle || currentScript.title,
-                parameters: JSON.stringify(currentScript.parameters),
-                content: JSON.stringify({
-                    meta_analysis: currentScript.meta_analysis,
-                    script_content: currentScript.script_content
-                }),
-                modelUsed: currentScript.modelUsed,
-                createdAt: new Date().toISOString()
-            };
-            localStorage.setItem('adscript_history', JSON.stringify([newHistoryItem, ...savedScripts]));
-            
-            setScripts(prev => [newHistoryItem, ...prev]);
-            setShowSaveModal(false);
-       } catch (lsErr) {
-            alert('保存出错');
-       }
+       console.warn("API Save failed, relying on LocalStorage", err);
+       // If API failed, we keep the tempId in savedScript
     } finally {
-      setSaving(false);
+        // Finalize LocalStorage Save
+        if (savedScript) {
+            try {
+                const savedScripts = JSON.parse(localStorage.getItem('adscript_history') || '[]');
+                // Check if we already have this ID (unlikely unless UUID collision or race condition)
+                // Filter out if we are updating? No, this is create.
+                localStorage.setItem('adscript_history', JSON.stringify([savedScript, ...savedScripts]));
+                
+                // Update State
+                setScripts(prev => {
+                    // Avoid duplicates if fetchScripts already grabbed it from API
+                    if (prev.find(s => s.id === savedScript.id)) return prev;
+                    return [savedScript, ...prev].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                });
+            } catch (lsErr) {
+                alert('保存失败 (本地存储不可用)');
+            }
+        }
+        setSaving(false);
+        setShowSaveModal(false);
     }
   };
 
