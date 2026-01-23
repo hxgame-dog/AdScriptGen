@@ -19,7 +19,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, parameters, content, modelUsed } = body;
+    const { title, parameters, content, modelUsed, creator } = body;
 
     const script = await prisma.script.create({
       data: {
@@ -27,6 +27,8 @@ export async function POST(request: Request) {
         parameters: typeof parameters === 'string' ? parameters : JSON.stringify(parameters),
         content: typeof content === 'string' ? content : JSON.stringify(content),
         modelUsed: modelUsed || 'unknown',
+        creator: creator || 'Anonymous',
+        status: 'draft',
       },
     });
 
@@ -60,15 +62,19 @@ export async function DELETE(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, title } = body;
+    const { id, title, status } = body;
 
-    if (!id || !title) {
-      return NextResponse.json({ error: 'ID and Title are required' }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
     }
+
+    const data: any = {};
+    if (title) data.title = title;
+    if (status) data.status = status;
 
     const script = await prisma.script.update({
       where: { id },
-      data: { title },
+      data,
     });
 
     return NextResponse.json(script);

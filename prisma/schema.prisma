@@ -16,7 +16,10 @@ model Script {
   parameters  String   // JSON string
   content     String   // JSON string
   modelUsed   String
+  creator     String   @default("Anonymous")
+  status      String   @default("draft") // draft, pending, producing, completed
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model FieldConfig {
