@@ -6,6 +6,7 @@ interface ConfigPanelProps {
   onGenerate: (params: any) => void;
   loading: boolean;
   models: { name: string; displayName: string }[];
+  onCreateCustom: () => void;
 }
 
 interface FieldOption {
@@ -114,7 +115,7 @@ const DEFAULT_CONFIGS: FieldOption[] = [
     }
 ];
 
-export default function ConfigPanel({ onGenerate, loading, models: initialModels }: ConfigPanelProps) {
+export default function ConfigPanel({ onGenerate, loading, models: initialModels, onCreateCustom }: ConfigPanelProps) {
   const [apiKey, setApiKey] = useState('');
   const [models, setModels] = useState(initialModels);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -366,7 +367,15 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
 
       </div>
 
-      <div className="pt-6 mt-auto">
+      <div className="pt-6 mt-auto space-y-3">
+        <button
+          onClick={onCreateCustom}
+          className="w-full py-2 bg-white border border-[#E9E9E7] text-[#37352F] rounded-sm text-sm font-medium hover:bg-[#EFEFED] transition-colors flex items-center justify-center"
+        >
+            <Edit className="w-4 h-4 mr-2" />
+            自定义脚本
+        </button>
+
         <button
           onClick={handleGenerate}
           disabled={loading || !apiKey}

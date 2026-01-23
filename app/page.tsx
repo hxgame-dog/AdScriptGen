@@ -87,6 +87,7 @@ export default function Home() {
   const handleGenerate = async (params: any) => {
     setLoading(true);
     setCurrentScript(null); // Clear previous
+    setIsCreatingCustom(false); // Not custom anymore
     setStreamingContent(''); // Clear previous stream
     
     try {
@@ -198,9 +199,39 @@ export default function Home() {
     }
   };
 
-  const handleSaveClick = () => {
-    if (!currentScript) return;
-    setSaveTitle(currentScript.title || "未命名脚本");
+  const [isCreatingCustom, setIsCreatingCustom] = useState(false);
+
+  // ... existing code ...
+
+  const handleCreateCustom = () => {
+    setIsCreatingCustom(true);
+    setCurrentScript({
+      title: '新建自定义脚本',
+      meta_analysis: '',
+      production_guide: '',
+      script_content: [
+        { 
+            time: '0-5s', 
+            visual: '画面描述...', 
+            audio: '音效...', 
+            interaction: '', 
+            text: '',
+            prompt: ''
+        }
+      ],
+      parameters: { gameName: 'Custom' }
+    });
+  };
+
+  const handleSaveClick = (updatedScript?: any) => {
+    // If updatedScript is passed (from editing), update currentScript first
+    if (updatedScript) {
+        setCurrentScript(updatedScript);
+        setSaveTitle(updatedScript.title || "未命名脚本");
+    } else {
+        if (!currentScript) return;
+        setSaveTitle(currentScript.title || "未命名脚本");
+    }
     setShowSaveModal(true);
   };
 
@@ -304,6 +335,7 @@ export default function Home() {
   };
 
   const handleHistorySelect = (script: any) => {
+    setIsCreatingCustom(false);
     let parsedContent = script.content;
     if (typeof script.content === 'string') {
         try {
@@ -438,6 +470,7 @@ export default function Home() {
             onGenerate={handleGenerate} 
             loading={loading} 
             models={models} 
+            onCreateCustom={handleCreateCustom}
           />
         </div>
 
@@ -448,6 +481,7 @@ export default function Home() {
             onSave={handleSaveClick} 
             saving={saving}
             streamingContent={streamingContent}
+            isNew={isCreatingCustom}
           />
         </div>
 
