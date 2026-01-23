@@ -39,7 +39,9 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                 <div className="flex items-center justify-between">
                 <div className="flex items-center text-[10px] text-[#37352F] opacity-40 space-x-2">
                     <span>{new Date(script.createdAt).toLocaleDateString()}</span>
-                    <span>{new Date(script.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    {script.creator && script.creator !== 'Anonymous' && (
+                        <span className="font-medium text-blue-600">@{script.creator}</span>
+                    )}
                 </div>
                 <span className="text-[10px] bg-white text-[#37352F] opacity-60 px-1.5 py-0.5 rounded border border-[#E9E9E7] truncate max-w-[80px]">
                     {script.modelUsed}

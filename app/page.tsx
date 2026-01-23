@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import ConfigPanel from '@/components/ConfigPanel';
 import ScriptResult from '@/components/ScriptResult';
 import HistoryList from '@/components/HistoryList';
+import Link from 'next/link';
+import { User, Film } from 'lucide-react';
 
 export default function Home() {
   const [models, setModels] = useState<any[]>([]);
@@ -20,8 +22,20 @@ export default function Home() {
   const [renameTitle, setRenameTitle] = useState('');
   const [renameId, setRenameId] = useState<string | null>(null);
 
+  const [username, setUsername] = useState('Anonymous');
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+
   // Fetch models and scripts on mount
   useEffect(() => {
+    // Load username
+    const storedUser = localStorage.getItem('adscript_username');
+    if (storedUser) setUsername(storedUser);
+    else {
+        // Prompt for username if not set
+        setShowUserModal(true);
+    }
+
     fetch('/api/models')
       .then(res => res.json())
       .then(data => {
@@ -31,6 +45,14 @@ export default function Home() {
 
     fetchScripts();
   }, []);
+
+  const handleSaveUser = () => {
+      if (newUsername.trim()) {
+          setUsername(newUsername);
+          localStorage.setItem('adscript_username', newUsername);
+          setShowUserModal(false);
+      }
+  };
 
   const fetchScripts = () => {
     // Fetch from API first
@@ -199,13 +221,14 @@ export default function Home() {
             id: tempId,
             title: saveTitle || currentScript.title,
             parameters: typeof currentScript.parameters === 'string' ? currentScript.parameters : JSON.stringify(currentScript.parameters),
-            content: typeof currentScript.content === 'string' ? currentScript.content : JSON.stringify({
-                meta_analysis: currentScript.meta_analysis,
-                script_content: currentScript.script_content
-            }),
-            modelUsed: currentScript.modelUsed,
-            createdAt: new Date().toISOString()
-        };
+            content: typeof currentScript.content === 'string' ? currentScript.content: JSON.stringify({
+                    meta_analysis: currentScript.meta_analysis,
+                    script_content: currentScript.script_content
+                }),
+                modelUsed: currentScript.modelUsed,
+                creator: username,
+                createdAt: new Date().toISOString()
+            };
 
         // We save it temporarily. If API succeeds, we might want to update the ID, but for now this ensures data safety.
         // Actually, let's wait for API response. If API fails, we use this. 
@@ -229,6 +252,7 @@ export default function Home() {
             script_content: currentScript.script_content 
           },
           modelUsed: currentScript.modelUsed,
+          creator: username,
         }),
       });
       
@@ -382,10 +406,24 @@ export default function Home() {
           <h1 className="text-sm font-medium tracking-tight text-[#37352F]">AdScriptGen</h1>
           <span className="text-[#E9E9E7]">/</span>
           <p className="text-xs text-[#37352F] opacity-60">AI 赛车游戏广告素材生成器</p>
+          <div className="ml-4 flex items-center space-x-2">
+             <Link href="/production" className="text-xs flex items-center px-2 py-1 hover:bg-[#F7F7F5] rounded text-[#37352F] opacity-80 hover:opacity-100 transition-opacity">
+                <Film className="w-3 h-3 mr-1" />
+                制作管理
+             </Link>
+          </div>
         </div>
         <div className="flex items-center space-x-3">
-           <span className="text-[10px] text-[#37352F] opacity-40 px-1.5 py-0.5 rounded border border-[#E9E9E7]">v1.0.0</span>
-           <div className="w-6 h-6 rounded-full bg-[#F7F7F5] flex items-center justify-center text-xs text-[#37352F] border border-[#E9E9E7]">F</div>
+           <button 
+                onClick={() => { setNewUsername(username); setShowUserModal(true); }}
+                className="flex items-center space-x-1.5 px-2 py-1 hover:bg-[#F7F7F5] rounded cursor-pointer group"
+           >
+                <div className="w-5 h-5 rounded-full bg-[#F7F7F5] flex items-center justify-center text-[10px] text-[#37352F] border border-[#E9E9E7] group-hover:bg-white">
+                    <User className="w-3 h-3" />
+                </div>
+                <span className="text-xs text-[#37352F] font-medium">{username}</span>
+           </button>
+           <span className="text-[10px] text-[#37352F] opacity-40 px-1.5 py-0.5 rounded border border-[#E9E9E7]">v1.1.0</span>
         </div>
       </header>
 
@@ -420,6 +458,37 @@ export default function Home() {
         </div>
       </div>
 
+      {/* User Modal */}
+      {showUserModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div className="bg-white rounded-md shadow-xl w-[400px] border border-[#E9E9E7] p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-semibold text-[#37352F] mb-4">设置用户名</h3>
+            <p className="text-xs text-[#37352F] opacity-60 mb-4">请输入您的名字，以便在多人协作中识别您的身份。</p>
+            <div className="mb-6">
+              <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">用户名 / 昵称</label>
+              <input 
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                className="notion-input w-full"
+                placeholder="例如: Alice"
+                autoFocus
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveUser();
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button 
+                onClick={handleSaveUser}
+                disabled={!newUsername.trim()}
+                className="notion-button notion-button-primary"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Save Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
