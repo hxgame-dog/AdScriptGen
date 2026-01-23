@@ -37,6 +37,19 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
     });
   }, [scripts, filterText]);
 
+  // Tag Colors
+  const TAG_COLORS = [
+    'bg-red-50 text-red-600 border border-red-100',
+    'bg-orange-50 text-orange-600 border border-orange-100',
+    'bg-amber-50 text-amber-600 border border-amber-100',
+    'bg-green-50 text-green-600 border border-green-100',
+    'bg-teal-50 text-teal-600 border border-teal-100',
+    'bg-blue-50 text-blue-600 border border-blue-100',
+    'bg-indigo-50 text-indigo-600 border border-indigo-100',
+    'bg-purple-50 text-purple-600 border border-purple-100',
+    'bg-pink-50 text-pink-600 border border-pink-100',
+  ];
+
   if (scripts.length === 0) {
     return (
       <div className="bg-[#F7F7F5] h-full flex flex-col items-center justify-center p-6 text-center border-l border-[#E9E9E7]">
@@ -113,7 +126,7 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                             return (
                                 <div className="flex flex-wrap gap-1 mb-1.5">
                                     {tags.map((tag, i) => (
-                                        <span key={i} className="text-[9px] px-1 py-0.5 bg-[#E3E2E0] text-[#37352F] rounded-sm opacity-80">
+                                        <span key={i} className={`text-[9px] px-1 py-0.5 rounded-sm opacity-80 ${TAG_COLORS[i % TAG_COLORS.length]}`}>
                                             {tag}
                                         </span>
                                     ))}

@@ -151,6 +151,19 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
     params.cameraAngle?.split('(')[0].trim()
   ].filter(Boolean) : [];
 
+  // Tag Colors
+  const TAG_COLORS = [
+    'bg-red-50 text-red-600 border-red-100',
+    'bg-orange-50 text-orange-600 border-orange-100',
+    'bg-amber-50 text-amber-600 border-amber-100',
+    'bg-green-50 text-green-600 border-green-100',
+    'bg-teal-50 text-teal-600 border-teal-100',
+    'bg-blue-50 text-blue-600 border-blue-100',
+    'bg-indigo-50 text-indigo-600 border-indigo-100',
+    'bg-purple-50 text-purple-600 border-purple-100',
+    'bg-pink-50 text-pink-600 border-pink-100',
+  ];
+
   return (
     <div className="bg-white h-full flex flex-col overflow-hidden">
       <div className="p-4 border-b border-[#E9E9E7] flex justify-between items-center bg-white sticky top-0 z-10">
@@ -166,7 +179,7 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
             {tags.length > 0 && (
                 <div className="flex space-x-1">
                     {tags.map((tag: string, i: number) => (
-                        <span key={i} className="text-[10px] text-gray-500 bg-gray-50 px-1.5 rounded-sm border border-gray-100">
+                        <span key={i} className={`text-[10px] px-1.5 rounded-sm border ${TAG_COLORS[i % TAG_COLORS.length]}`}>
                             {tag}
                         </span>
                     ))}

@@ -143,14 +143,25 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
               const res = await fetch('/api/configs');
               const data = await res.json();
               
-              let mergedConfigs = DEFAULT_CONFIGS;
+              // Start with DEFAULT_CONFIGS to ensure Game Name is present
+              let mergedConfigs = [...DEFAULT_CONFIGS];
 
               if (Array.isArray(data) && data.length > 0) {
-                  const parsed = data.map((d: any) => ({
-                      ...d,
-                      options: JSON.parse(d.options || '[]')
-                  }));
-                  mergedConfigs = parsed;
+                  // If API returns configs, we need to carefully merge or replace.
+                  // Since API might not have 'gameName' if it's new, we should prioritize DEFAULT structure but update options if present.
+                  // For simplicity in this fix: we'll stick to DEFAULT_CONFIGS + API updates for existing keys.
+                  // But wait, the user says "Game Name" disappeared. This means `fieldConfigs` state didn't include it.
+                  // This happens if `data` from API completely replaces `DEFAULT_CONFIGS` and `data` is stale (doesn't have gameName).
+                  
+                  // FIX: We will force 'gameName' to be present by merging API data INTO default configs, not replacing.
+                  const apiConfigMap = new Map(data.map((d: any) => [d.key, { ...d, options: JSON.parse(d.options || '[]') }]));
+                  
+                  mergedConfigs = DEFAULT_CONFIGS.map(def => {
+                      if (apiConfigMap.has(def.key)) {
+                          return apiConfigMap.get(def.key);
+                      }
+                      return def;
+                  });
               }
               
               // Merge Local Overrides
@@ -166,7 +177,7 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
           } catch (err) {
               console.error("Failed to fetch configs, using defaults + local", err);
               // Fallback: Default + Local
-              let mergedConfigs = DEFAULT_CONFIGS;
+              let mergedConfigs = [...DEFAULT_CONFIGS];
               if (localConfigs.length > 0) {
                   const configMap = new Map(mergedConfigs.map(c => [c.key, c]));
                   localConfigs.forEach((lc: FieldOption) => {
