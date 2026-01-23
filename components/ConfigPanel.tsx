@@ -16,6 +16,16 @@ interface FieldOption {
 
 const DEFAULT_CONFIGS: FieldOption[] = [
     {
+      key: 'gameName',
+      label: '游戏名称 (Game Name)',
+      options: [
+        "Drift Racing: 3v3",
+        "Speed Legend",
+        "Kart Rider Rush",
+        "Asphalt 9"
+      ]
+    },
+    {
       key: 'visualTheme',
       label: '视觉主题 (Visual Theme)',
       options: [
@@ -112,15 +122,15 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
   
   const [params, setParams] = useState({
     model: 'gemini-1.5-flash',
-    gameName: 'Drift Racing: 3v3',
+    gameName: DEFAULT_CONFIGS[0].options[0],
     videoDuration: '30',
-    visualTheme: DEFAULT_CONFIGS[0].options[0],
-    cameraAngle: DEFAULT_CONFIGS[1].options[0],
-    coreInteraction: DEFAULT_CONFIGS[2].options[0],
-    copyHook: DEFAULT_CONFIGS[3].options[0],
-    audioDesign: DEFAULT_CONFIGS[4].options[0],
-    scriptFlow: DEFAULT_CONFIGS[5].options[0],
-    ending: DEFAULT_CONFIGS[6].options[0],
+    visualTheme: DEFAULT_CONFIGS[1].options[0],
+    cameraAngle: DEFAULT_CONFIGS[2].options[0],
+    coreInteraction: DEFAULT_CONFIGS[3].options[0],
+    copyHook: DEFAULT_CONFIGS[4].options[0],
+    audioDesign: DEFAULT_CONFIGS[5].options[0],
+    scriptFlow: DEFAULT_CONFIGS[6].options[0],
+    ending: DEFAULT_CONFIGS[7].options[0],
   });
 
   // Fetch configs
@@ -322,17 +332,6 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
                 ))}
             </select>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">游戏名称</label>
-          <input 
-            type="text" 
-            value={params.gameName}
-            onChange={(e) => handleChange('gameName', e.target.value)}
-            className="notion-input"
-            placeholder="例如: Drift Racing: 3v3"
-          />
         </div>
 
         <div>

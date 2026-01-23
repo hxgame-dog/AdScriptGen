@@ -140,17 +140,38 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
   };
 
   const { meta_analysis, script_content, production_guide } = script;
+  
+  // Extract Tags
+  let params: any = script.parameters;
+  if (typeof params === 'string') {
+    try { params = JSON.parse(params); } catch(e) {}
+  }
+  const tags = params && typeof params === 'object' ? [
+    params.visualTheme?.split('(')[0].trim(),
+    params.cameraAngle?.split('(')[0].trim()
+  ].filter(Boolean) : [];
 
   return (
     <div className="bg-white h-full flex flex-col overflow-hidden">
       <div className="p-4 border-b border-[#E9E9E7] flex justify-between items-center bg-white sticky top-0 z-10">
-        <div className="flex items-center space-x-3">
-          <span className="px-2 py-0.5 bg-[#E3E2E0] text-[#37352F] text-xs rounded-sm font-medium">
-             已生成
-          </span>
-          <span className="text-sm text-[#37352F] opacity-60 font-medium">
-             {script_content?.length || 0} 个分镜
-          </span>
+        <div className="flex flex-col space-y-1">
+            <div className="flex items-center space-x-3">
+            <span className="px-2 py-0.5 bg-[#E3E2E0] text-[#37352F] text-xs rounded-sm font-medium">
+                已生成
+            </span>
+            <span className="text-sm text-[#37352F] opacity-60 font-medium">
+                {script_content?.length || 0} 个分镜
+            </span>
+            </div>
+            {tags.length > 0 && (
+                <div className="flex space-x-1">
+                    {tags.map((tag: string, i: number) => (
+                        <span key={i} className="text-[10px] text-gray-500 bg-gray-50 px-1.5 rounded-sm border border-gray-100">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
         <div className="flex space-x-2">
           <button 

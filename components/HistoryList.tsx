@@ -1,4 +1,5 @@
-import { Clock, Trash2, Edit2 } from 'lucide-react';
+import { Clock, Trash2, Edit2, Filter, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
 
 interface HistoryListProps {
   scripts: any[];
@@ -8,6 +9,34 @@ interface HistoryListProps {
 }
 
 export default function HistoryList({ scripts, onSelect, onDelete, onRename }: HistoryListProps) {
+  const [filterText, setFilterText] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
+
+  // Filter scripts
+  const filteredScripts = useMemo(() => {
+    if (!filterText) return scripts;
+    const lowerFilter = filterText.toLowerCase();
+    
+    return scripts.filter(script => {
+        // Search in title, creator, and tags
+        const titleMatch = (script.title || '').toLowerCase().includes(lowerFilter);
+        const creatorMatch = (script.creator || '').toLowerCase().includes(lowerFilter);
+        
+        let paramsMatch = false;
+        if (script.parameters) {
+            try {
+                const params = typeof script.parameters === 'string' 
+                    ? JSON.parse(script.parameters) 
+                    : script.parameters;
+                const tagsStr = Object.values(params).join(' ').toLowerCase();
+                paramsMatch = tagsStr.includes(lowerFilter);
+            } catch(e) {}
+        }
+
+        return titleMatch || creatorMatch || paramsMatch;
+    });
+  }, [scripts, filterText]);
+
   if (scripts.length === 0) {
     return (
       <div className="bg-[#F7F7F5] h-full flex flex-col items-center justify-center p-6 text-center border-l border-[#E9E9E7]">
@@ -19,12 +48,43 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
 
   return (
     <div className="bg-[#F7F7F5] h-full flex flex-col border-l border-[#E9E9E7]">
-      <div className="p-4 flex items-center mb-2">
-        <Clock className="w-4 h-4 mr-2 text-[#37352F] opacity-60" />
-        <h2 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">历史记录</h2>
+      <div className="p-4 flex items-center justify-between mb-2">
+        <div className="flex items-center">
+            <Clock className="w-4 h-4 mr-2 text-[#37352F] opacity-60" />
+            <h2 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">历史记录</h2>
+        </div>
+        <button 
+            onClick={() => setShowFilter(!showFilter)}
+            className={`p-1 rounded hover:bg-[#EFEFED] transition-colors ${showFilter ? 'text-blue-600 bg-blue-50' : 'text-[#37352F] opacity-60'}`}
+        >
+            <Filter className="w-3 h-3" />
+        </button>
       </div>
+
+      {showFilter && (
+        <div className="px-4 mb-3">
+            <div className="relative">
+                <input 
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    placeholder="筛选: 标签, 用户..."
+                    className="w-full text-xs px-2 py-1.5 rounded border border-[#E9E9E7] focus:outline-none focus:border-blue-500 bg-white"
+                    autoFocus
+                />
+                {filterText && (
+                    <button 
+                        onClick={() => setFilterText('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                        <X className="w-3 h-3" />
+                    </button>
+                )}
+            </div>
+        </div>
+      )}
+
       <div className="overflow-y-auto flex-1 custom-scrollbar px-2 pb-2">
-        {scripts.map((script) => (
+        {filteredScripts.map((script) => (
           <div
             key={script.id}
             className="w-full text-left p-3 mb-2 rounded-sm hover:bg-[#EFEFED] transition-colors group relative"
