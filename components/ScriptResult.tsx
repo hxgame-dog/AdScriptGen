@@ -54,7 +54,194 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
     );
   }
   
-  // ... existing logic ...
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(script, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleExportHTML = () => {
+    if (!script) return;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${script.title || 'AdScriptGen 脚本'}</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; background: #f9f9f9; }
+        .container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; margin-bottom: 10px; border-bottom: 2px solid #eaeaea; padding-bottom: 20px; }
+        .meta { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .analysis { background: #f0f7ff; padding: 20px; border-left: 4px solid #0070f3; margin-bottom: 30px; border-radius: 4px; }
+        .analysis h3 { margin-top: 0; font-size: 16px; color: #0070f3; text-transform: uppercase; }
+        .scene { margin-bottom: 30px; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden; page-break-inside: avoid; }
+        .scene-header { background: #f5f5f5; padding: 10px 20px; border-bottom: 1px solid #eaeaea; font-weight: bold; display: flex; justify-content: space-between; }
+        .scene-content { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .field { margin-bottom: 10px; }
+        .label { font-size: 12px; color: #888; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 5px; }
+        .value { font-size: 14px; }
+        .full-width { grid-column: span 2; }
+        .interaction { background: #fff8e1; padding: 10px; border-radius: 4px; margin-top: 10px; }
+        .text-overlay { font-size: 18px; font-family: serif; border-left: 3px solid #333; padding-left: 15px; margin-top: 10px; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; padding: 0; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>${script.title || '无标题脚本'}</h1>
+        <div class="meta">
+            <p><strong>生成时间:</strong> ${new Date().toLocaleString()}</p>
+            <p><strong>模型:</strong> ${script.modelUsed || 'AI Model'}</p>
+        </div>
+
+        ${script.meta_analysis ? `
+        <div class="analysis">
+            <h3>策略分析</h3>
+            <p>${script.meta_analysis}</p>
+        </div>
+        ` : ''}
+
+        <div class="scripts">
+            ${script.script_content?.map((scene: any, index: number) => `
+            <div class="scene">
+                <div class="scene-header">
+                    <span>${scene.time}</span>
+                    <span>SCENE ${index + 1}</span>
+                </div>
+                <div class="scene-content">
+                    <div class="field">
+                        <span class="label">画面 (Visual)</span>
+                        <div class="value">${scene.visual}</div>
+                    </div>
+                    <div class="field">
+                        <span class="label">音效 (Audio)</span>
+                        <div class="value">"${scene.audio}"</div>
+                    </div>
+                    ${scene.interaction ? `
+                    <div class="field full-width">
+                        <div class="interaction">
+                            <span class="label">交互指令</span>
+                            <div class="value">${scene.interaction}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ${scene.text ? `
+                    <div class="field full-width">
+                        <span class="label">文案 (Text)</span>
+                        <div class="value text-overlay">${scene.text}</div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            `).join('')}
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${script.title || 'script'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // --- EDITING HANDLERS ---
+  const handleEditChange = (field: string, value: string) => {
+      setEditableScript((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSceneChange = (index: number, field: string, value: string) => {
+      const newContent = [...editableScript.script_content];
+      newContent[index] = { ...newContent[index], [field]: value };
+      setEditableScript((prev: any) => ({ ...prev, script_content: newContent }));
+  };
+
+  const addScene = () => {
+      const newScene = {
+          time: '0-5s',
+          visual: 'New Visual...',
+          audio: 'New Audio...',
+          interaction: '',
+          text: '',
+          prompt: ''
+      };
+      setEditableScript((prev: any) => ({ 
+          ...prev, 
+          script_content: [...(prev.script_content || []), newScene] 
+      }));
+  };
+
+  const removeScene = (index: number) => {
+      if (!confirm('确定删除该分镜吗？')) return;
+      const newContent = editableScript.script_content.filter((_: any, i: number) => i !== index);
+      setEditableScript((prev: any) => ({ ...prev, script_content: newContent }));
+  };
+
+  const saveEdits = () => {
+      if (onScriptChange) {
+          onScriptChange(editableScript);
+      }
+      setIsEditing(false);
+  };
+
+  const cancelEdits = () => {
+      if (isNew) {
+        if (confirm("放弃新建脚本?")) {
+             setEditableScript(script); 
+             setIsEditing(false);
+        }
+      } else {
+        setEditableScript(script);
+        setIsEditing(false);
+      }
+  };
+
+  const { meta_analysis, script_content, production_guide } = isEditing ? editableScript : script;
+  
+  // Extract Tags
+  let params: any = script.parameters;
+  if (typeof params === 'string') {
+    try { params = JSON.parse(params); } catch(e) {}
+  }
+
+  // Helper to extract Chinese content from parens or fallback
+  const extractTag = (str: string) => {
+    if (!str) return '';
+    const match = str.match(/\(([^)]+)\)/);
+    return match ? match[1] : str.split('(')[0].trim();
+  };
+
+  const tags = params && typeof params === 'object' ? [
+    extractTag(params.visualTheme),
+    extractTag(params.cameraAngle),
+    extractTag(params.coreInteraction),
+    extractTag(params.copyHook),
+    extractTag(params.audioDesign),
+    extractTag(params.scriptFlow),
+    extractTag(params.ending),
+  ].filter(Boolean) : [];
+
+  // Tag Colors
+  const TAG_COLORS = [
+    'bg-red-50 text-red-600 border-red-100',
+    'bg-orange-50 text-orange-600 border-orange-100',
+    'bg-amber-50 text-amber-600 border-amber-100',
+    'bg-green-50 text-green-600 border-green-100',
+    'bg-teal-50 text-teal-600 border-teal-100',
+    'bg-blue-50 text-blue-600 border-blue-100',
+    'bg-indigo-50 text-indigo-600 border-indigo-100',
+    'bg-purple-50 text-purple-600 border-purple-100',
+    'bg-pink-50 text-pink-600 border-pink-100',
+  ];
 
   return (
     <div className="bg-[var(--surface)] h-full flex flex-col overflow-hidden">
