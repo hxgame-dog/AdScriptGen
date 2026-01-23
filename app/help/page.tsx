@@ -110,8 +110,8 @@ export default function HelpPage() {
                         <p className="text-gray-500">每个分镜附带 AI 绘画提示词 (Prompt)，可直接复制用于 Midjourney 生成分镜图。</p>
                     </div>
                     <div>
-                        <h4 className="font-medium mb-1">导出 HTML</h4>
-                        <p className="text-gray-500">支持一键导出排版精美的 HTML 文件，方便离线阅读或打印。</p>
+                        <h4 className="font-medium mb-1">数据安全</h4>
+                        <p className="text-gray-500">系统采用双重存储机制，即使网络中断，您的脚本也会安全保存在本地浏览器的缓存中。</p>
                     </div>
                 </div>
             </section>
