@@ -5,7 +5,7 @@ import ConfigPanel from '@/components/ConfigPanel';
 import ScriptResult from '@/components/ScriptResult';
 import HistoryList from '@/components/HistoryList';
 import Link from 'next/link';
-import { User, Film } from 'lucide-react';
+import { User, Film, HelpCircle } from 'lucide-react';
 
 export default function Home() {
   const [models, setModels] = useState<any[]>([]);
@@ -410,6 +410,10 @@ export default function Home() {
              <Link href="/production" className="text-xs flex items-center px-2 py-1 hover:bg-[#F7F7F5] rounded text-[#37352F] opacity-80 hover:opacity-100 transition-opacity">
                 <Film className="w-3 h-3 mr-1" />
                 制作管理
+             </Link>
+             <Link href="/help" className="text-xs flex items-center px-2 py-1 hover:bg-[#F7F7F5] rounded text-[#37352F] opacity-80 hover:opacity-100 transition-opacity">
+                <HelpCircle className="w-3 h-3 mr-1" />
+                使用说明
              </Link>
           </div>
         </div>

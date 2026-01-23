@@ -139,7 +139,7 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
     URL.revokeObjectURL(url);
   };
 
-  const { meta_analysis, script_content } = script;
+  const { meta_analysis, script_content, production_guide } = script;
 
   return (
     <div className="bg-white h-full flex flex-col overflow-hidden">
@@ -190,6 +190,15 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
           </div>
         )}
 
+        {production_guide && (
+          <div className="mb-8 p-4 bg-blue-50 rounded-sm border border-blue-100">
+            <h3 className="text-xs font-semibold text-blue-800 opacity-80 uppercase tracking-widest mb-2">视频制作指南</h3>
+            <div className="text-[#37352F] text-sm leading-relaxed whitespace-pre-wrap">
+              {production_guide}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-8">
           {script_content?.map((scene: any, index: number) => (
             <div key={index} className="group relative pl-4">
@@ -220,6 +229,12 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
                     <div className="md:col-span-2">
                       <span className="block text-[10px] text-[#37352F] opacity-40 font-bold uppercase mb-1.5">文案 (Text Overlay)</span>
                       <p className="text-[#37352F] font-serif text-lg pl-3 border-l-2 border-[#37352F] py-0.5">{scene.text}</p>
+                    </div>
+                  )}
+                  {scene.prompt && (
+                    <div className="md:col-span-2 bg-gray-50 p-2.5 rounded-sm border border-gray-200 mt-2">
+                      <span className="block text-[10px] text-[#37352F] opacity-40 font-bold uppercase mb-1">生成提示词 (Prompt)</span>
+                      <p className="text-gray-600 font-mono text-xs select-all">{scene.prompt}</p>
                     </div>
                   )}
                 </div>

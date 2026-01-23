@@ -36,6 +36,34 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                 <h3 className="text-sm font-medium text-[#37352F] truncate mb-1 pr-12">
                 {script.title || "未命名脚本"}
                 </h3>
+                
+                {/* Parameters Tags */}
+                {(() => {
+                    let params = script.parameters;
+                    if (typeof params === 'string') {
+                        try { params = JSON.parse(params); } catch(e) {}
+                    }
+                    if (params && typeof params === 'object') {
+                        const tags = [
+                            params.visualTheme?.split('(')[0].trim(),
+                            params.cameraAngle?.split('(')[0].trim()
+                        ].filter(Boolean);
+                        
+                        if (tags.length > 0) {
+                            return (
+                                <div className="flex flex-wrap gap-1 mb-1.5">
+                                    {tags.map((tag, i) => (
+                                        <span key={i} className="text-[9px] px-1 py-0.5 bg-[#E3E2E0] text-[#37352F] rounded-sm opacity-80">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            );
+                        }
+                    }
+                    return null;
+                })()}
+
                 <div className="flex items-center justify-between">
                 <div className="flex items-center text-[10px] text-[#37352F] opacity-40 space-x-2">
                     <span>{new Date(script.createdAt).toLocaleDateString()}</span>

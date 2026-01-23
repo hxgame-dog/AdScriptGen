@@ -28,13 +28,15 @@ export async function POST(request: Request) {
       format: "JSON",
       structure: {
         meta_analysis: "简短分析该脚本的心理学策略和特性（中文）",
+        production_guide: "针对视频制作人员的简短指南（中文），包括剪辑节奏、特效重点等建议。",
         script_content: [
           { 
               time: "0-5s", 
               visual: "画面描述...", 
               audio: "...", 
               interaction: "...", 
-              text: "中文文案 | English Copy"
+              text: "中文文案 | English Copy",
+              prompt: "Stable Diffusion/Midjourney Prompt for this scene (English)"
           }
         ]
       }
@@ -58,8 +60,9 @@ export async function POST(request: Request) {
       2. Scene Duration: Approximately 5 seconds per scene.
       3. Total Scenes: Around ${sceneCount} scenes.
       4. Language: 
-         - Meta Analysis, Visual, Audio, Interaction: Chinese (Simplified).
+         - Meta Analysis, Visual, Audio, Interaction, Production Guide: Chinese (Simplified).
          - Text/Copy: MUST be Bilingual (Chinese | English). Example: "只有高手能过 | Only pros can pass"
+         - Prompt: English (Optimized for AI Image Generators like Stable Diffusion)
       
       Output Requirement:
       ${JSON.stringify(outputRequirement, null, 2)}

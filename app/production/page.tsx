@@ -12,6 +12,7 @@ interface Script {
   createdAt: string;
   modelUsed: string;
   content: any; // Parsed content
+  parameters?: any; // Parsed or string
 }
 
 const STATUS_CONFIG = {
@@ -68,6 +69,88 @@ export default function ProductionPage() {
     }
   };
 
+  const renderScriptCard = (script: Script, status: string) => {
+    let params: any = script.parameters;
+    if (typeof params === 'string') {
+        try { params = JSON.parse(params); } catch(e) {}
+    }
+    const tags = params && typeof params === 'object' ? [
+        params.visualTheme?.split('(')[0].trim(),
+        params.cameraAngle?.split('(')[0].trim()
+    ].filter(Boolean) : [];
+
+    return (
+        <div key={script.id} className="bg-white p-4 rounded-md shadow-sm border border-[#E9E9E7] hover:shadow-md transition-shadow group">
+            <div className="flex justify-between items-start mb-2">
+                <h3 className="text-sm font-medium text-[#37352F] line-clamp-2 leading-tight">{script.title}</h3>
+            </div>
+            
+            {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                    {tags.map((tag: string, i: number) => (
+                        <span key={i} className="text-[9px] px-1 py-0.5 bg-[#E3E2E0] text-[#37352F] rounded-sm opacity-80">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            <div className="flex items-center justify-between text-[10px] text-[#37352F] opacity-60 mb-3">
+                <div className="flex items-center space-x-2">
+                        <span>@{script.creator || 'Anonymous'}</span>
+                        <span>•</span>
+                        <span>{new Date(script.createdAt).toLocaleDateString()}</span>
+                </div>
+                <span className="border border-[#E9E9E7] px-1 rounded">{script.modelUsed}</span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-2 pt-2 border-t border-[#E9E9E7] mt-2">
+                {status === 'pending' && (
+                    <button 
+                        onClick={() => updateStatus(script.id, 'producing')}
+                        className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 font-medium transition-colors"
+                    >
+                        开始制作
+                    </button>
+                )}
+                {status === 'producing' && (
+                    <div className="flex space-x-2">
+                        <button 
+                            onClick={() => updateStatus(script.id, 'pending')}
+                            className="text-xs px-2 py-1 text-gray-500 hover:bg-gray-100 rounded transition-colors"
+                        >
+                            退回
+                        </button>
+                        <button 
+                            onClick={() => updateStatus(script.id, 'completed')}
+                            className="text-xs px-2 py-1 bg-green-50 text-green-600 rounded hover:bg-green-100 font-medium transition-colors"
+                        >
+                            完成
+                        </button>
+                    </div>
+                )}
+                {status === 'completed' && (
+                    <button 
+                        onClick={() => updateStatus(script.id, 'producing')}
+                        className="text-xs px-2 py-1 text-gray-500 hover:bg-gray-100 rounded transition-colors"
+                    >
+                        重新制作
+                    </button>
+                )}
+                {status === 'draft' && (
+                    <button 
+                        onClick={() => updateStatus(script.id, 'pending')}
+                        className="w-full py-1.5 text-xs bg-[#37352F] text-white rounded hover:bg-black transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                        提交制作
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+  };
+
   const renderColumn = (status: 'pending' | 'producing' | 'completed') => {
     const columnScripts = scripts.filter(s => s.status === status);
     const Config = STATUS_CONFIG[status];
@@ -86,58 +169,7 @@ export default function ProductionPage() {
         </div>
         
         <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-1">
-            {columnScripts.map(script => (
-                <div key={script.id} className="bg-white p-4 rounded-md shadow-sm border border-[#E9E9E7] hover:shadow-md transition-shadow group">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-sm font-medium text-[#37352F] line-clamp-2 leading-tight">{script.title}</h3>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-[10px] text-[#37352F] opacity-60 mb-3">
-                        <div className="flex items-center space-x-2">
-                             <span>@{script.creator || 'Anonymous'}</span>
-                             <span>•</span>
-                             <span>{new Date(script.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <span className="border border-[#E9E9E7] px-1 rounded">{script.modelUsed}</span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex justify-end space-x-2 pt-2 border-t border-[#E9E9E7] mt-2">
-                        {status === 'pending' && (
-                            <button 
-                                onClick={() => updateStatus(script.id, 'producing')}
-                                className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 font-medium transition-colors"
-                            >
-                                开始制作
-                            </button>
-                        )}
-                        {status === 'producing' && (
-                            <div className="flex space-x-2">
-                                <button 
-                                    onClick={() => updateStatus(script.id, 'pending')}
-                                    className="text-xs px-2 py-1 text-gray-500 hover:bg-gray-100 rounded transition-colors"
-                                >
-                                    退回
-                                </button>
-                                <button 
-                                    onClick={() => updateStatus(script.id, 'completed')}
-                                    className="text-xs px-2 py-1 bg-green-50 text-green-600 rounded hover:bg-green-100 font-medium transition-colors"
-                                >
-                                    完成
-                                </button>
-                            </div>
-                        )}
-                        {status === 'completed' && (
-                            <button 
-                                onClick={() => updateStatus(script.id, 'producing')}
-                                className="text-xs px-2 py-1 text-gray-500 hover:bg-gray-100 rounded transition-colors"
-                            >
-                                重新制作
-                            </button>
-                        )}
-                    </div>
-                </div>
-            ))}
+            {columnScripts.map(script => renderScriptCard(script, status))}
             {columnScripts.length === 0 && (
                 <div className="text-center py-10 opacity-30 text-sm">
                     暂无任务
@@ -150,6 +182,14 @@ export default function ProductionPage() {
 
   const draftScripts = scripts.filter(s => s.status === 'draft' || !s.status);
 
+  // Statistics
+  const stats = {
+      total: scripts.length,
+      pending: scripts.filter(s => s.status === 'pending').length,
+      producing: scripts.filter(s => s.status === 'producing').length,
+      completed: scripts.filter(s => s.status === 'completed').length,
+  };
+
   return (
     <div className="min-h-screen bg-white font-sans text-[#37352F] flex flex-col h-screen overflow-hidden">
       <header className="h-14 border-b border-[#E9E9E7] flex items-center px-6 justify-between flex-shrink-0 bg-white z-20">
@@ -159,10 +199,24 @@ export default function ProductionPage() {
           </Link>
           <h1 className="text-base font-semibold text-[#37352F]">脚本制作看板</h1>
         </div>
-        <div className="flex items-center space-x-2 text-xs text-gray-500">
-            <span>总计: {scripts.length}</span>
-            <span>•</span>
-            <span>完成: {scripts.filter(s => s.status === 'completed').length}</span>
+        <div className="flex items-center space-x-4 text-xs text-[#37352F]">
+            <div className="flex items-center space-x-1">
+                <span className="opacity-60">待制作</span>
+                <span className="font-bold bg-yellow-100 text-yellow-700 px-1.5 rounded">{stats.pending}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+                <span className="opacity-60">制作中</span>
+                <span className="font-bold bg-blue-100 text-blue-700 px-1.5 rounded">{stats.producing}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+                <span className="opacity-60">已完成</span>
+                <span className="font-bold bg-green-100 text-green-700 px-1.5 rounded">{stats.completed}</span>
+            </div>
+            <div className="h-4 w-[1px] bg-[#E9E9E7]"></div>
+            <div className="flex items-center space-x-1 opacity-40">
+                <span>总计</span>
+                <span>{stats.total}</span>
+            </div>
         </div>
       </header>
 
