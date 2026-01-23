@@ -437,41 +437,41 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white font-sans text-[#37352F] flex flex-col h-screen overflow-hidden">
-      <header className="h-12 border-b border-[#E9E9E7] flex items-center px-4 justify-between flex-shrink-0 bg-white z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 bg-[#37352F] text-white flex items-center justify-center rounded-sm text-xs font-bold">A</div>
-          <h1 className="text-sm font-medium tracking-tight text-[#37352F]">AdScriptGen</h1>
-          <span className="text-[#E9E9E7]">/</span>
-          <p className="text-xs text-[#37352F] opacity-60">AI 赛车游戏广告素材生成器</p>
-          <div className="ml-4 flex items-center space-x-2">
-             <Link href="/production" className="text-xs flex items-center px-2 py-1 hover:bg-[#F7F7F5] rounded text-[#37352F] opacity-80 hover:opacity-100 transition-opacity">
-                <Film className="w-3 h-3 mr-1" />
-                制作管理
+    <main className="min-h-screen bg-[var(--bg-color)] font-sans text-[var(--foreground)] flex flex-col h-screen overflow-hidden selection:bg-[var(--accent)] selection:text-white">
+      <header className="h-14 glass-panel flex items-center px-6 justify-between flex-shrink-0 z-20">
+        <div className="flex items-center space-x-3">
+          <div className="w-6 h-6 bg-[var(--foreground)] text-white flex items-center justify-center rounded-[4px] text-xs font-bold tracking-tighter">ASG</div>
+          <h1 className="text-base font-bold tracking-tight text-[var(--foreground)] font-mono">AdScriptGen</h1>
+          <span className="text-[var(--border)]">/</span>
+          <p className="text-xs text-[var(--muted)] font-medium">AI Creative Studio</p>
+          <div className="ml-6 flex items-center space-x-2">
+             <Link href="/production" className="text-xs flex items-center px-3 py-1.5 hover:bg-[var(--accent-light)] hover:text-[var(--accent)] rounded-[var(--radius)] text-[var(--muted)] transition-all font-medium">
+                <Film className="w-3.5 h-3.5 mr-1.5" />
+                Production
              </Link>
-             <Link href="/help" className="text-xs flex items-center px-2 py-1 hover:bg-[#F7F7F5] rounded text-[#37352F] opacity-80 hover:opacity-100 transition-opacity">
-                <HelpCircle className="w-3 h-3 mr-1" />
-                使用说明
+             <Link href="/help" className="text-xs flex items-center px-3 py-1.5 hover:bg-[var(--accent-light)] hover:text-[var(--accent)] rounded-[var(--radius)] text-[var(--muted)] transition-all font-medium">
+                <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
+                Guide
              </Link>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-4">
            <button 
                 onClick={() => { setNewUsername(username); setShowUserModal(true); }}
-                className="flex items-center space-x-1.5 px-2 py-1 hover:bg-[#F7F7F5] rounded cursor-pointer group"
+                className="flex items-center space-x-2 px-2 py-1 hover:bg-[var(--accent-light)] rounded-[var(--radius)] cursor-pointer group transition-all"
            >
-                <div className="w-5 h-5 rounded-full bg-[#F7F7F5] flex items-center justify-center text-[10px] text-[#37352F] border border-[#E9E9E7] group-hover:bg-white">
-                    <User className="w-3 h-3" />
+                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] text-[var(--foreground)] border border-[var(--border)] group-hover:border-[var(--accent)] group-hover:text-[var(--accent)] transition-colors">
+                    <User className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs text-[#37352F] font-medium">{username}</span>
+                <span className="text-xs text-[var(--foreground)] font-medium group-hover:text-[var(--accent)]">{username}</span>
            </button>
-           <span className="text-[10px] text-[#37352F] opacity-40 px-1.5 py-0.5 rounded border border-[#E9E9E7]">v1.1.0</span>
+           <span className="text-[10px] text-[var(--muted)] px-2 py-0.5 rounded-[4px] border border-[var(--border)] bg-white font-mono">v1.1.0</span>
         </div>
       </header>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left Column: Config */}
-        <div className="w-[300px] flex-shrink-0 h-full min-h-0">
+        <div className="w-[320px] flex-shrink-0 h-full min-h-0 border-r border-[var(--border)] bg-[var(--bg-color)]">
           <ConfigPanel 
             onGenerate={handleGenerate} 
             loading={loading} 
@@ -481,7 +481,7 @@ export default function Home() {
         </div>
 
         {/* Middle Column: Result */}
-        <div className="flex-1 h-full min-h-0 relative">
+        <div className="flex-1 h-full min-h-0 relative bg-white">
           <ScriptResult 
             script={currentScript} 
             onSave={handleSaveClick} 
@@ -493,7 +493,7 @@ export default function Home() {
         </div>
 
         {/* Right Column: History */}
-        <div className="w-[260px] flex-shrink-0 h-full min-h-0">
+        <div className="w-[280px] flex-shrink-0 h-full min-h-0 border-l border-[var(--border)] bg-[var(--bg-color)]">
           <HistoryList 
             scripts={scripts} 
             onSelect={handleHistorySelect} 
@@ -505,17 +505,17 @@ export default function Home() {
 
       {/* User Modal */}
       {showUserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-          <div className="bg-white rounded-md shadow-xl w-[400px] border border-[#E9E9E7] p-6 animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-semibold text-[#37352F] mb-4">设置用户名</h3>
-            <p className="text-xs text-[#37352F] opacity-60 mb-4">请输入您的名字，以便在多人协作中识别您的身份。</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[var(--radius)] shadow-2xl w-[400px] border border-[var(--border)] p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2 font-mono">Identify Yourself</h3>
+            <p className="text-xs text-[var(--muted)] mb-6">Enter your handle for the studio logs.</p>
             <div className="mb-6">
-              <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">用户名 / 昵称</label>
+              <label className="block text-xs font-bold text-[var(--muted)] mb-2 uppercase tracking-wider">Username</label>
               <input 
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
-                className="notion-input w-full"
-                placeholder="例如: Alice"
+                className="notion-input w-full font-mono"
+                placeholder="e.g. USER_01"
                 autoFocus
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSaveUser();
@@ -528,7 +528,7 @@ export default function Home() {
                 disabled={!newUsername.trim()}
                 className="notion-button notion-button-primary"
               >
-                确认
+                Confirm
               </button>
             </div>
           </div>
@@ -536,32 +536,32 @@ export default function Home() {
       )}
       {/* Save Modal */}
       {showSaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-          <div className="bg-white rounded-md shadow-xl w-[400px] border border-[#E9E9E7] p-6 animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-semibold text-[#37352F] mb-4">保存脚本</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[var(--radius)] shadow-2xl w-[400px] border border-[var(--border)] p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-6 font-mono">Save Script</h3>
             <div className="mb-6">
-              <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">标题</label>
+              <label className="block text-xs font-bold text-[var(--muted)] mb-2 uppercase tracking-wider">Title</label>
               <input 
                 value={saveTitle}
                 onChange={(e) => setSaveTitle(e.target.value)}
-                className="notion-input w-full"
-                placeholder="输入脚本标题..."
+                className="notion-input w-full font-medium"
+                placeholder="Enter script title..."
                 autoFocus
               />
             </div>
             <div className="flex justify-end space-x-2">
               <button 
                 onClick={() => setShowSaveModal(false)}
-                className="notion-button hover:bg-[#EFEFED] text-[#37352F]"
+                className="notion-button notion-button-secondary"
               >
-                取消
+                Cancel
               </button>
               <button 
                 onClick={handleConfirmSave}
                 disabled={saving}
                 className="notion-button notion-button-primary"
               >
-                {saving ? '保存中...' : '确认保存'}
+                {saving ? 'Saving...' : 'Confirm Save'}
               </button>
             </div>
           </div>
@@ -569,16 +569,16 @@ export default function Home() {
       )}
       {/* Rename Modal */}
       {showRenameModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-          <div className="bg-white rounded-md shadow-xl w-[400px] border border-[#E9E9E7] p-6 animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-semibold text-[#37352F] mb-4">重命名脚本</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[var(--radius)] shadow-2xl w-[400px] border border-[var(--border)] p-6 animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-6 font-mono">Rename Script</h3>
             <div className="mb-6">
-              <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">新标题</label>
+              <label className="block text-xs font-bold text-[var(--muted)] mb-2 uppercase tracking-wider">New Title</label>
               <input 
                 value={renameTitle}
                 onChange={(e) => setRenameTitle(e.target.value)}
-                className="notion-input w-full"
-                placeholder="输入新标题..."
+                className="notion-input w-full font-medium"
+                placeholder="Enter new title..."
                 autoFocus
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') handleConfirmRename();
@@ -589,15 +589,15 @@ export default function Home() {
             <div className="flex justify-end space-x-2">
               <button 
                 onClick={() => setShowRenameModal(false)}
-                className="notion-button hover:bg-[#EFEFED] text-[#37352F]"
+                className="notion-button notion-button-secondary"
               >
-                取消
+                Cancel
               </button>
               <button 
                 onClick={handleConfirmRename}
                 className="notion-button notion-button-primary"
               >
-                确认修改
+                Update
               </button>
             </div>
           </div>
