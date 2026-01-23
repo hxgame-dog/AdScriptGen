@@ -43,6 +43,16 @@ export default function AdminConfigPage() {
           // API empty or failed, use defaults
           const DEFAULT_CONFIGS = [
             {
+              key: 'gameName',
+              label: '游戏名称 (Game Name)',
+              options: [
+                "Drift Racing: 3v3",
+                "Speed Legend",
+                "Kart Rider Rush",
+                "Asphalt 9"
+              ]
+            },
+            {
               key: 'visualTheme',
               label: '视觉主题 (Visual Theme)',
               options: [

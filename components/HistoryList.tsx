@@ -117,22 +117,39 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                         try { params = JSON.parse(params); } catch(e) {}
                     }
                     if (params && typeof params === 'object') {
+                        // All relevant tags in order
                         const tags = [
                             params.visualTheme?.split('(')[0].trim(),
-                            params.cameraAngle?.split('(')[0].trim()
+                            params.cameraAngle?.split('(')[0].trim(),
+                            params.coreInteraction?.split('(')[0].trim(),
+                            params.copyHook?.split('(')[0].trim(),
+                            params.audioDesign?.split('(')[0].trim(),
+                            params.scriptFlow?.split('(')[0].trim(),
+                            params.ending?.split('(')[0].trim(),
                         ].filter(Boolean);
                         
-                        if (tags.length > 0) {
-                            return (
-                                <div className="flex flex-wrap gap-1 mb-1.5">
-                                    {tags.map((tag, i) => (
-                                        <span key={i} className={`text-[9px] px-1 py-0.5 rounded-sm opacity-80 ${TAG_COLORS[i % TAG_COLORS.length]}`}>
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            );
-                        }
+                        // Game Name
+                        const gameName = params.gameName;
+
+                        return (
+                            <div className="mb-2">
+                                {gameName && (
+                                    <div className="text-[10px] text-gray-500 font-semibold mb-1 opacity-80 flex items-center">
+                                        <span className="w-1 h-1 rounded-full bg-gray-400 mr-1.5"></span>
+                                        {gameName}
+                                    </div>
+                                )}
+                                {tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                        {tags.map((tag, i) => (
+                                            <span key={i} className={`text-[9px] px-1 py-0.5 rounded-sm opacity-80 ${TAG_COLORS[i % TAG_COLORS.length]}`}>
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
                     }
                     return null;
                 })()}

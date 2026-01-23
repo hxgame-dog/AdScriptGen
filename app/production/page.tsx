@@ -76,19 +76,45 @@ export default function ProductionPage() {
     }
     const tags = params && typeof params === 'object' ? [
         params.visualTheme?.split('(')[0].trim(),
-        params.cameraAngle?.split('(')[0].trim()
+        params.cameraAngle?.split('(')[0].trim(),
+        params.coreInteraction?.split('(')[0].trim(),
+        params.copyHook?.split('(')[0].trim(),
+        params.audioDesign?.split('(')[0].trim(),
+        params.scriptFlow?.split('(')[0].trim(),
+        params.ending?.split('(')[0].trim(),
     ].filter(Boolean) : [];
+
+    // Tag Colors
+    const TAG_COLORS = [
+        'bg-red-50 text-red-600 border border-red-100',
+        'bg-orange-50 text-orange-600 border border-orange-100',
+        'bg-amber-50 text-amber-600 border border-amber-100',
+        'bg-green-50 text-green-600 border border-green-100',
+        'bg-teal-50 text-teal-600 border border-teal-100',
+        'bg-blue-50 text-blue-600 border border-blue-100',
+        'bg-indigo-50 text-indigo-600 border border-indigo-100',
+        'bg-purple-50 text-purple-600 border border-purple-100',
+        'bg-pink-50 text-pink-600 border border-pink-100',
+    ];
+
+    const gameName = params?.gameName;
 
     return (
         <div key={script.id} className="bg-white p-4 rounded-md shadow-sm border border-[#E9E9E7] hover:shadow-md transition-shadow group">
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex flex-col mb-2">
+                {gameName && (
+                    <div className="text-[10px] text-gray-500 font-semibold mb-1 opacity-80 flex items-center">
+                        <span className="w-1 h-1 rounded-full bg-gray-400 mr-1.5"></span>
+                        {gameName}
+                    </div>
+                )}
                 <h3 className="text-sm font-medium text-[#37352F] line-clamp-2 leading-tight">{script.title}</h3>
             </div>
             
             {tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
                     {tags.map((tag: string, i: number) => (
-                        <span key={i} className="text-[9px] px-1 py-0.5 bg-[#E3E2E0] text-[#37352F] rounded-sm opacity-80">
+                        <span key={i} className={`text-[9px] px-1 py-0.5 rounded-sm opacity-80 ${TAG_COLORS[i % TAG_COLORS.length]}`}>
                             {tag}
                         </span>
                     ))}

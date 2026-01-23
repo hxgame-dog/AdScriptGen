@@ -258,6 +258,7 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
 
   const renderField = (config: FieldOption) => (
     <div key={config.key} className="relative">
+      {config.key === 'visualTheme' && <div className="h-px bg-[#E9E9E7] my-4"></div>}
       <div className="flex justify-between items-center mb-1.5">
         <label className="block text-xs font-medium text-[#37352F] opacity-60 uppercase">{config.label}</label>
         {(params as any)[config.key] && (
