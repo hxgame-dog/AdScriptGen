@@ -117,15 +117,22 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                         try { params = JSON.parse(params); } catch(e) {}
                     }
                     if (params && typeof params === 'object') {
+                        // Helper to extract Chinese content from parens or fallback
+                        const extractTag = (str: string) => {
+                            if (!str) return '';
+                            const match = str.match(/\(([^)]+)\)/);
+                            return match ? match[1] : str.split('(')[0].trim();
+                        };
+
                         // All relevant tags in order
                         const tags = [
-                            params.visualTheme?.split('(')[0].trim(),
-                            params.cameraAngle?.split('(')[0].trim(),
-                            params.coreInteraction?.split('(')[0].trim(),
-                            params.copyHook?.split('(')[0].trim(),
-                            params.audioDesign?.split('(')[0].trim(),
-                            params.scriptFlow?.split('(')[0].trim(),
-                            params.ending?.split('(')[0].trim(),
+                            extractTag(params.visualTheme),
+                            extractTag(params.cameraAngle),
+                            extractTag(params.coreInteraction),
+                            extractTag(params.copyHook),
+                            extractTag(params.audioDesign),
+                            extractTag(params.scriptFlow),
+                            extractTag(params.ending),
                         ].filter(Boolean);
                         
                         // Game Name

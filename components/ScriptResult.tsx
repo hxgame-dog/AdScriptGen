@@ -146,9 +146,22 @@ export default function ScriptResult({ script, onSave, saving, streamingContent 
   if (typeof params === 'string') {
     try { params = JSON.parse(params); } catch(e) {}
   }
+
+  // Helper to extract Chinese content from parens or fallback
+  const extractTag = (str: string) => {
+    if (!str) return '';
+    const match = str.match(/\(([^)]+)\)/);
+    return match ? match[1] : str.split('(')[0].trim();
+  };
+
   const tags = params && typeof params === 'object' ? [
-    params.visualTheme?.split('(')[0].trim(),
-    params.cameraAngle?.split('(')[0].trim()
+    extractTag(params.visualTheme),
+    extractTag(params.cameraAngle),
+    extractTag(params.coreInteraction),
+    extractTag(params.copyHook),
+    extractTag(params.audioDesign),
+    extractTag(params.scriptFlow),
+    extractTag(params.ending),
   ].filter(Boolean) : [];
 
   // Tag Colors

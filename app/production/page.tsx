@@ -74,14 +74,22 @@ export default function ProductionPage() {
     if (typeof params === 'string') {
         try { params = JSON.parse(params); } catch(e) {}
     }
+
+    // Helper to extract Chinese content from parens or fallback
+    const extractTag = (str: string) => {
+        if (!str) return '';
+        const match = str.match(/\(([^)]+)\)/);
+        return match ? match[1] : str.split('(')[0].trim();
+    };
+
     const tags = params && typeof params === 'object' ? [
-        params.visualTheme?.split('(')[0].trim(),
-        params.cameraAngle?.split('(')[0].trim(),
-        params.coreInteraction?.split('(')[0].trim(),
-        params.copyHook?.split('(')[0].trim(),
-        params.audioDesign?.split('(')[0].trim(),
-        params.scriptFlow?.split('(')[0].trim(),
-        params.ending?.split('(')[0].trim(),
+        extractTag(params.visualTheme),
+        extractTag(params.cameraAngle),
+        extractTag(params.coreInteraction),
+        extractTag(params.copyHook),
+        extractTag(params.audioDesign),
+        extractTag(params.scriptFlow),
+        extractTag(params.ending),
     ].filter(Boolean) : [];
 
     // Tag Colors
@@ -103,12 +111,12 @@ export default function ProductionPage() {
         <div key={script.id} className="bg-white p-4 rounded-md shadow-sm border border-[#E9E9E7] hover:shadow-md transition-shadow group">
             <div className="flex flex-col mb-2">
                 {gameName && (
-                    <div className="text-[10px] text-gray-500 font-semibold mb-1 opacity-80 flex items-center">
-                        <span className="w-1 h-1 rounded-full bg-gray-400 mr-1.5"></span>
+                    <div className="text-base font-bold text-[#37352F] mb-1.5 flex items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#2383E2] mr-2"></span>
                         {gameName}
                     </div>
                 )}
-                <h3 className="text-sm font-medium text-[#37352F] line-clamp-2 leading-tight">{script.title}</h3>
+                <h3 className="text-sm font-medium text-[#37352F] line-clamp-2 leading-tight opacity-80">{script.title}</h3>
             </div>
             
             {tags.length > 0 && (

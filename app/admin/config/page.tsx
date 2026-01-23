@@ -144,13 +144,26 @@ export default function AdminConfigPage() {
       }
 
       // Merge Local Overrides: If LS has a key, it overwrites/adds to API/Default
-      // This allows users on Vercel to have persistent custom configs
       if (localConfigs.length > 0) {
           const configMap = new Map(mergedConfigs.map(c => [c.key, c]));
           localConfigs.forEach((lc: FieldConfig) => {
               configMap.set(lc.key, lc);
           });
           mergedConfigs = Array.from(configMap.values());
+      }
+
+      // Ensure Game Name exists if missing (e.g. from old DB data)
+      if (!mergedConfigs.find(c => c.key === 'gameName')) {
+          mergedConfigs.unshift({
+            key: 'gameName',
+            label: '游戏名称 (Game Name)',
+            options: [
+                "Drift Racing: 3v3",
+                "Speed Legend",
+                "Kart Rider Rush",
+                "Asphalt 9"
+            ]
+          });
       }
 
       setConfigs(mergedConfigs);
