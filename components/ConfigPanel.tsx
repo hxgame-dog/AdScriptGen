@@ -125,22 +125,50 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
 
   // Fetch configs
   useEffect(() => {
-      fetch('/api/configs')
-        .then(res => res.json())
-        .then(data => {
-            if (Array.isArray(data) && data.length > 0) {
-                const parsed = data.map((d: any) => ({
-                    ...d,
-                    options: JSON.parse(d.options || '[]')
-                }));
-                setFieldConfigs(parsed);
-                
-                // Update params if needed, but respect user choice if they already changed it
-                // Actually, if we loaded from DB, we might want to ensure params are valid options
-                // For now, let's keep the hardcoded defaults as initial state, and only update fieldConfigs options
-            }
-        })
-        .catch(err => console.error("Failed to fetch configs, using defaults", err));
+      const loadConfigs = async () => {
+          // 1. Load from LS first (custom configs)
+          const localConfigs = JSON.parse(localStorage.getItem('adscript_field_configs') || '[]');
+          
+          try {
+              const res = await fetch('/api/configs');
+              const data = await res.json();
+              
+              let mergedConfigs = DEFAULT_CONFIGS;
+
+              if (Array.isArray(data) && data.length > 0) {
+                  const parsed = data.map((d: any) => ({
+                      ...d,
+                      options: JSON.parse(d.options || '[]')
+                  }));
+                  mergedConfigs = parsed;
+              }
+              
+              // Merge Local Overrides
+              if (localConfigs.length > 0) {
+                  const configMap = new Map(mergedConfigs.map(c => [c.key, c]));
+                  localConfigs.forEach((lc: FieldOption) => {
+                      configMap.set(lc.key, lc);
+                  });
+                  mergedConfigs = Array.from(configMap.values());
+              }
+
+              setFieldConfigs(mergedConfigs);
+          } catch (err) {
+              console.error("Failed to fetch configs, using defaults + local", err);
+              // Fallback: Default + Local
+              let mergedConfigs = DEFAULT_CONFIGS;
+              if (localConfigs.length > 0) {
+                  const configMap = new Map(mergedConfigs.map(c => [c.key, c]));
+                  localConfigs.forEach((lc: FieldOption) => {
+                      configMap.set(lc.key, lc);
+                  });
+                  mergedConfigs = Array.from(configMap.values());
+              }
+              setFieldConfigs(mergedConfigs);
+          }
+      };
+      
+      loadConfigs();
   }, []);
 
   // Fetch models when API key changes (debounced)

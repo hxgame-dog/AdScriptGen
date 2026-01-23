@@ -24,22 +24,23 @@ export default function AdminConfigPage() {
 
   const fetchConfigs = async () => {
     try {
+      // 1. Load from LS first to be snappy and have custom configs
+      const localConfigs = JSON.parse(localStorage.getItem('adscript_field_configs') || '[]');
+      
       const res = await fetch('/api/configs');
       const data = await res.json();
+      
+      let mergedConfigs: FieldConfig[] = [];
+
       if (Array.isArray(data) && data.length > 0) {
-        setConfigs(data.map((c: any) => ({
+        // API has data, map it
+        const apiConfigs = data.map((c: any) => ({
           ...c,
           options: JSON.parse(c.options || '[]')
-        })));
-        // Select first if none selected
-        if (!selectedKey && !isCreating) {
-            setSelectedKey(data[0].key);
-        }
+        }));
+        mergedConfigs = apiConfigs;
       } else {
-          // Fallback to hardcoded defaults if API returns empty (e.g. Vercel read-only DB)
-          // We import these from ConfigPanel or duplicate them here.
-          // For simplicity and robustness, let's duplicate the structure to ensure Admin page works visually
-          // even if saving fails.
+          // API empty or failed, use defaults
           const DEFAULT_CONFIGS = [
             {
               key: 'visualTheme',
@@ -129,11 +130,25 @@ export default function AdminConfigPage() {
               ]
             }
         ];
-        setConfigs(DEFAULT_CONFIGS);
-        if (!selectedKey && !isCreating) {
-            setSelectedKey(DEFAULT_CONFIGS[0].key);
-        }
+        mergedConfigs = DEFAULT_CONFIGS;
       }
+
+      // Merge Local Overrides: If LS has a key, it overwrites/adds to API/Default
+      // This allows users on Vercel to have persistent custom configs
+      if (localConfigs.length > 0) {
+          const configMap = new Map(mergedConfigs.map(c => [c.key, c]));
+          localConfigs.forEach((lc: FieldConfig) => {
+              configMap.set(lc.key, lc);
+          });
+          mergedConfigs = Array.from(configMap.values());
+      }
+
+      setConfigs(mergedConfigs);
+      
+      if (!selectedKey && !isCreating && mergedConfigs.length > 0) {
+        setSelectedKey(mergedConfigs[0].key);
+      }
+
     } catch (e) {
       console.error(e);
     } finally {
@@ -147,10 +162,22 @@ export default function AdminConfigPage() {
         return;
     }
     
-    // Ensure we are saving the *current* state of options, not stale ones
-    // But config passed here is currentConfig which is from render, so it should be fine.
-    // However, let's make sure we are not losing focus or state.
-    
+    // Fallback to LocalStorage first (Vercel/Cloudflare compatibility)
+    try {
+        const localConfigs = JSON.parse(localStorage.getItem('adscript_field_configs') || '[]');
+        // Check if key exists
+        const index = localConfigs.findIndex((c: any) => c.key === config.key);
+        if (index >= 0) {
+            localConfigs[index] = config;
+        } else {
+            localConfigs.push(config);
+        }
+        localStorage.setItem('adscript_field_configs', JSON.stringify(localConfigs));
+        // alert('已保存到本地配置 (Database Unavailable)'); // Silent success or separate toast
+    } catch (e) {
+        console.error("LS Config Save failed", e);
+    }
+
     try {
       const res = await fetch('/api/configs', {
         method: 'POST',
@@ -166,23 +193,51 @@ export default function AdminConfigPage() {
           const savedConfig = await res.json();
           alert('保存成功');
           
-          // Update local state without full refetch to keep UI stable if possible, 
-          // but full refetch is safer for sync.
-          // Let's refetch to be sure.
           await fetchConfigs();
           
-          // If we were creating, switch to editing mode for the new key
           if (isCreating) {
               setIsCreating(false);
               setSelectedKey(savedConfig.key);
               setNewConfig({ key: '', label: '', options: [] });
           }
       } else {
-          const errorData = await res.json();
-          alert(`保存失败: ${errorData.error || '未知错误'}`);
+          // If API fails (e.g. Vercel NO DB), we rely on LS.
+          // But we should update the UI state to reflect the change from LS
+          // Manually update configs state
+          setConfigs(prev => {
+              const exists = prev.find(c => c.key === config.key);
+              if (exists) {
+                  return prev.map(c => c.key === config.key ? config : c);
+              } else {
+                  return [...prev, config];
+              }
+          });
+          
+          if (isCreating) {
+              setIsCreating(false);
+              setSelectedKey(config.key);
+              setNewConfig({ key: '', label: '', options: [] });
+          }
+          
+          alert('保存成功 (仅本地生效，云端数据库不可用)');
       }
     } catch (e: any) {
-      alert(`保存失败: ${e.message}`);
+       // Network error or other, rely on LS
+       setConfigs(prev => {
+            const exists = prev.find(c => c.key === config.key);
+            if (exists) {
+                return prev.map(c => c.key === config.key ? config : c);
+            } else {
+                return [...prev, config];
+            }
+        });
+        
+        if (isCreating) {
+            setIsCreating(false);
+            setSelectedKey(config.key);
+            setNewConfig({ key: '', label: '', options: [] });
+        }
+        alert('保存成功 (仅本地生效)');
     }
   };
 
