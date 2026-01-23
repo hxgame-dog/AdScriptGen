@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 interface ScriptResultProps {
   script: any;
   onSave: (updatedScript?: any) => void;
+  onScriptChange?: (updatedScript: any) => void;
   saving: boolean;
   streamingContent?: string;
   isNew?: boolean; // If true, start in edit mode
 }
 
-export default function ScriptResult({ script, onSave, saving, streamingContent, isNew }: ScriptResultProps) {
+export default function ScriptResult({ script, onSave, onScriptChange, saving, streamingContent, isNew }: ScriptResultProps) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editableScript, setEditableScript] = useState<any>(null);
@@ -189,7 +190,9 @@ export default function ScriptResult({ script, onSave, saving, streamingContent,
   };
 
   const saveEdits = () => {
-      onSave(editableScript);
+      if (onScriptChange) {
+          onScriptChange(editableScript);
+      }
       setIsEditing(false);
   };
 
@@ -325,8 +328,8 @@ export default function ScriptResult({ script, onSave, saving, streamingContent,
             disabled={saving}
             className="notion-button notion-button-primary flex items-center"
           >
-            <Save className="w-4 h-4 mr-1.5" />
-            {saving ? '保存中...' : '保存脚本'}
+            {isEditing ? <Check className="w-4 h-4 mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
+            {isEditing ? '完成编辑' : (saving ? '保存中...' : '保存脚本')}
           </button>
         </div>
       </div>

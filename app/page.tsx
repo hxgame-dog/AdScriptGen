@@ -430,6 +430,12 @@ export default function Home() {
       }
   };
 
+  const handleScriptChange = (updatedScript: any) => {
+    setCurrentScript(updatedScript);
+    setIsCreatingCustom(false); // Once edited and confirmed, it's no longer "newly creating" mode in a way, or maybe it is. 
+    // Actually, if we just confirm edits, we stay in view mode.
+  };
+
   return (
     <main className="min-h-screen bg-white font-sans text-[#37352F] flex flex-col h-screen overflow-hidden">
       <header className="h-12 border-b border-[#E9E9E7] flex items-center px-4 justify-between flex-shrink-0 bg-white z-20">
@@ -479,6 +485,7 @@ export default function Home() {
           <ScriptResult 
             script={currentScript} 
             onSave={handleSaveClick} 
+            onScriptChange={handleScriptChange}
             saving={saving}
             streamingContent={streamingContent}
             isNew={isCreatingCustom}
