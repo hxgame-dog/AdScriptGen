@@ -1,4 +1,4 @@
-import { Save, Copy, Check, FileText, Download, Edit3, Plus, Trash2, XCircle } from 'lucide-react';
+import { Save, Copy, Check, FileText, Download, Edit3, Plus, Trash2, XCircle, LayoutList, Table as TableIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface ScriptResultProps {
@@ -14,6 +14,7 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editableScript, setEditableScript] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   useEffect(() => {
     if (script) {
@@ -28,32 +29,34 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
 
   // Show streaming content if available and script is not yet parsed
   if (streamingContent && !script) {
+    // ... existing streaming render ...
     return (
-        <div className="bg-[var(--surface)] h-full flex flex-col p-8 overflow-hidden">
-            <div className="flex items-center space-x-3 mb-6 animate-pulse">
-                <div className="w-2.5 h-2.5 bg-[var(--accent)] rounded-sm"></div>
-                <span className="text-xs font-bold text-[var(--accent)] uppercase tracking-widest font-mono">Processing Script...</span>
+        <div className="bg-white h-full flex flex-col p-6 overflow-hidden">
+            <div className="flex items-center space-x-2 mb-4 animate-pulse">
+                <div className="w-2 h-2 bg-[#2383E2] rounded-full"></div>
+                <span className="text-xs font-medium text-[#2383E2] uppercase tracking-wider">AI 思考生成中...</span>
             </div>
-            <div className="flex-1 overflow-y-auto bg-[var(--bg-color)] p-6 rounded-[var(--radius)] border border-[var(--border)] font-mono text-xs text-[var(--muted)] whitespace-pre-wrap custom-scrollbar shadow-inner">
+            <div className="flex-1 overflow-y-auto bg-[#F7F7F5] p-4 rounded-sm border border-[#E9E9E7] font-mono text-xs text-[#37352F] whitespace-pre-wrap custom-scrollbar">
                 {streamingContent}
-                <span className="inline-block w-2 h-4 bg-[var(--accent)] ml-1 align-middle animate-pulse"></span>
+                <span className="inline-block w-2 h-4 bg-[#37352F] ml-1 align-middle animate-pulse"></span>
             </div>
         </div>
     );
   }
 
   if (!script) {
+    // ... existing empty render ...
     return (
-      <div className="h-full flex flex-col items-center justify-center text-[var(--muted)] opacity-60 bg-[var(--surface)] rounded-[var(--radius)]">
-        <div className="w-20 h-20 bg-[var(--bg-color)] rounded-full flex items-center justify-center mb-6 border border-[var(--border)] shadow-sm">
-          <FileText className="w-8 h-8 text-[var(--muted)] opacity-50" />
+      <div className="h-full flex flex-col items-center justify-center text-[#37352F] opacity-40 bg-white rounded-sm">
+        <div className="w-16 h-16 bg-[#F7F7F5] rounded-full flex items-center justify-center mb-4">
+          <FileText className="w-8 h-8 text-[#9B9A97]" />
         </div>
-        <p className="text-lg font-bold tracking-tight text-[var(--foreground)]">No Script Generated</p>
-        <p className="text-xs mt-2 uppercase tracking-wider opacity-60 font-mono">Configure & Generate to start</p>
+        <p className="text-lg font-medium">暂无脚本生成</p>
+        <p className="text-sm mt-1">请在左侧配置参数并点击生成</p>
       </div>
     );
   }
-  
+
   const handleCopy = () => {
     navigator.clipboard.writeText(JSON.stringify(script, null, 2));
     setCopied(true);
@@ -61,6 +64,7 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
   };
 
   const handleExportHTML = () => {
+    // ... existing export logic ...
     if (!script) return;
 
     const htmlContent = `
@@ -195,9 +199,13 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
 
   const cancelEdits = () => {
       if (isNew) {
+        // If it was new and we cancel, effectively we might want to clear it?
+        // But for now just revert to initial blank state or do nothing?
+        // Let's just keep editing mode if new, or alert user?
         if (confirm("放弃新建脚本?")) {
-             setEditableScript(script); 
-             setIsEditing(false);
+            // Ideally we should clear the selection in parent, but for now just revert
+             setEditableScript(script); // Revert to blank
+             setIsEditing(false); // This might show empty view if script was empty
         }
       } else {
         setEditableScript(script);
@@ -244,28 +252,25 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
   ];
 
   return (
-    <div className="bg-[var(--surface)] h-full flex flex-col overflow-hidden">
-      <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface)] sticky top-0 z-10">
+    <div className="bg-white h-full flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-[#E9E9E7] flex justify-between items-center bg-white sticky top-0 z-10">
         {/* Left Side: Status / Title Input */}
-        <div className="flex flex-col space-y-2 flex-1 mr-6">
+        <div className="flex flex-col space-y-1 flex-1 mr-4">
             <div className="flex items-center space-x-3">
                 {isEditing ? (
                     <input 
                         value={editableScript.title || ''}
                         onChange={(e) => handleEditChange('title', e.target.value)}
-                        className="text-lg font-bold text-[var(--foreground)] border-b-2 border-[var(--border)] focus:border-[var(--accent)] outline-none w-full max-w-md bg-transparent transition-colors font-mono"
-                        placeholder="SCRIPT_TITLE..."
+                        className="text-sm font-medium text-[#37352F] border-b border-gray-300 focus:border-blue-500 outline-none w-full max-w-md"
+                        placeholder="请输入脚本标题..."
                     />
                 ) : (
                     <>
-                        <span className="px-2 py-0.5 bg-[var(--bg-color)] text-[var(--muted)] text-[10px] uppercase tracking-wider rounded-[4px] border border-[var(--border)] font-bold">
-                            {isNew ? 'DRAFT' : 'GENERATED'}
+                        <span className="px-2 py-0.5 bg-[#E3E2E0] text-[#37352F] text-xs rounded-sm font-medium">
+                            {isNew ? '新建脚本' : '已生成'}
                         </span>
-                        <span className="text-sm font-bold text-[var(--foreground)] tracking-tight">
-                            {script.title || 'Untitled Script'}
-                        </span>
-                        <span className="text-xs text-[var(--muted)] font-mono opacity-60">
-                            • {script_content?.length || 0} Scenes
+                        <span className="text-sm text-[#37352F] opacity-60 font-medium">
+                            {script_content?.length || 0} 个分镜
                         </span>
                     </>
                 )}
@@ -273,7 +278,7 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
             {!isEditing && tags.length > 0 && (
                 <div className="flex space-x-1">
                     {tags.map((tag: string, i: number) => (
-                        <span key={i} className={`text-[10px] px-2 py-0.5 rounded-[4px] font-medium border uppercase tracking-wider ${TAG_COLORS[i % TAG_COLORS.length].replace('bg-', 'bg-opacity-10 bg-').replace('border-', 'border-opacity-20 border-')}`}>
+                        <span key={i} className={`text-[10px] px-1.5 rounded-sm border ${TAG_COLORS[i % TAG_COLORS.length]}`}>
                             {tag}
                         </span>
                     ))}
@@ -283,205 +288,311 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
 
         {/* Right Side: Actions */}
         <div className="flex space-x-2">
+          <div className="flex items-center bg-gray-100 rounded-lg p-0.5 mr-2 border border-gray-200">
+            <button
+                onClick={() => setViewMode('card')}
+                className={`p-1.5 rounded-md flex items-center transition-all ${viewMode === 'card' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                title="结构化视图"
+            >
+                <LayoutList className="w-4 h-4" />
+            </button>
+            <button
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded-md flex items-center transition-all ${viewMode === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                title="表格视图"
+            >
+                <TableIcon className="w-4 h-4" />
+            </button>
+          </div>
+
           {!isEditing ? (
               <>
                 <button 
                     onClick={() => setIsEditing(true)}
                     className="notion-button notion-button-secondary flex items-center"
                 >
-                    <Edit3 className="w-3.5 h-3.5 mr-1.5" />
-                    Edit
+                    <Edit3 className="w-4 h-4 mr-1" />
+                    编辑
                 </button>
                 <button 
                     onClick={handleExportHTML}
                     className="notion-button notion-button-secondary flex items-center"
-                    title="Export HTML"
+                    title="导出 HTML"
                 >
-                    <Download className="w-3.5 h-3.5 mr-1.5" />
-                    Export
+                    <Download className="w-4 h-4 mr-1" />
+                    导出
                 </button>
                 <button 
                     onClick={handleCopy}
                     className="notion-button notion-button-secondary flex items-center"
-                    title="Copy JSON"
+                    title="复制 JSON"
                 >
-                    {copied ? <Check className="w-3.5 h-3.5 text-green-600 mr-1.5" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
-                    {copied ? 'Copied' : 'Copy'}
+                    {copied ? <Check className="w-4 h-4 text-green-600 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
+                    {copied ? '已复制' : '复制'}
                 </button>
               </>
           ) : (
               <button 
                   onClick={cancelEdits}
-                  className="notion-button notion-button-secondary flex items-center text-red-600 hover:bg-red-50 hover:border-red-200"
+                  className="notion-button notion-button-secondary flex items-center text-red-600 hover:bg-red-50"
               >
-                  <XCircle className="w-3.5 h-3.5 mr-1.5" />
-                  Cancel
+                  <XCircle className="w-4 h-4 mr-1" />
+                  取消
               </button>
           )}
 
           <button 
             onClick={isEditing ? saveEdits : () => onSave(script)}
             disabled={saving}
-            className="notion-button notion-button-primary flex items-center shadow-md"
+            className="notion-button notion-button-primary flex items-center"
           >
-            {isEditing ? <Check className="w-3.5 h-3.5 mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-            {isEditing ? 'Finish Editing' : (saving ? 'Saving...' : 'Save Script')}
+            {isEditing ? <Check className="w-4 h-4 mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
+            {isEditing ? '完成编辑' : (saving ? '保存中...' : '保存脚本')}
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[var(--surface)]">
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
         {/* Meta Analysis */}
-        <div className="mb-8 p-6 bg-[var(--bg-color)] rounded-[var(--radius)] border border-[var(--border)]">
-            <h3 className="text-[11px] font-bold text-[var(--muted)] opacity-80 uppercase tracking-widest mb-3 flex items-center">
-                <span className="w-1.5 h-1.5 bg-[var(--accent)] rounded-full mr-2"></span>
-                Strategic Analysis
-            </h3>
+        <div className="mb-8 p-4 bg-[#F7F7F5] rounded-sm border border-[#E9E9E7]">
+            <h3 className="text-xs font-semibold text-[#37352F] opacity-60 uppercase tracking-widest mb-2">策略分析</h3>
             {isEditing ? (
                 <textarea 
                     value={meta_analysis || ''}
                     onChange={(e) => handleEditChange('meta_analysis', e.target.value)}
-                    className="w-full h-32 text-sm p-3 border border-[var(--border)] rounded-[var(--radius)] focus:ring-1 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none bg-white font-sans leading-relaxed"
-                    placeholder="Enter analysis..."
+                    className="w-full h-24 text-sm p-2 border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    placeholder="在此输入策略分析..."
                 />
             ) : (
-                <p className="text-[var(--foreground)] text-sm leading-relaxed font-sans">{meta_analysis}</p>
+                <p className="text-[#37352F] text-sm leading-relaxed">{meta_analysis}</p>
             )}
         </div>
 
         {/* Production Guide */}
-        <div className="mb-10 p-6 bg-[#EFF6FF] rounded-[var(--radius)] border border-blue-100">
-            <h3 className="text-[11px] font-bold text-blue-600 opacity-80 uppercase tracking-widest mb-3 flex items-center">
-                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                Production Guide
-            </h3>
+        <div className="mb-8 p-4 bg-blue-50 rounded-sm border border-blue-100">
+            <h3 className="text-xs font-semibold text-blue-800 opacity-80 uppercase tracking-widest mb-2">视频制作指南</h3>
             {isEditing ? (
                 <textarea 
                     value={production_guide || ''}
                     onChange={(e) => handleEditChange('production_guide', e.target.value)}
-                    className="w-full h-32 text-sm p-3 border border-blue-200 rounded-[var(--radius)] focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white font-sans leading-relaxed"
-                    placeholder="Enter production guide..."
+                    className="w-full h-24 text-sm p-2 border border-blue-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    placeholder="在此输入视频制作指南..."
                 />
             ) : (
-                <div className="text-[#1e3a8a] text-sm leading-relaxed whitespace-pre-wrap font-sans">{production_guide}</div>
+                <div className="text-[#37352F] text-sm leading-relaxed whitespace-pre-wrap">{production_guide}</div>
             )}
         </div>
 
         {/* Script Content */}
-        <div className="space-y-12">
-          {script_content?.map((scene: any, index: number) => (
-            <div key={index} className="group relative pl-6 border-l-2 border-[var(--border)] hover:border-[var(--accent)] transition-colors duration-300">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-baseline">
-                    {isEditing ? (
-                        <input 
-                            value={scene.time}
-                            onChange={(e) => handleSceneChange(index, 'time', e.target.value)}
-                            className="text-lg font-bold text-[var(--foreground)] mr-3 font-mono border-b border-[var(--border)] w-24 focus:border-[var(--accent)] outline-none bg-transparent"
-                        />
-                    ) : (
-                        <span className="text-lg font-bold text-[var(--foreground)] mr-3 font-mono">{scene.time}</span>
-                    )}
-                    <span className="text-xs font-bold text-[var(--muted)] opacity-50 uppercase tracking-wider">Scene {index + 1}</span>
-                </div>
-                {isEditing && (
-                    <button onClick={() => removeScene(index)} className="text-[var(--muted)] hover:text-red-600 p-1 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                )}
-              </div>
-              
-              <div className="bg-white border border-[var(--border)] rounded-[var(--radius)] p-6 shadow-sm hover:shadow-md transition-shadow group-hover:border-[var(--accent)] duration-300">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
-                  {/* Visual */}
-                  <div>
-                    <span className="block text-[10px] text-[var(--muted)] font-bold uppercase tracking-widest mb-2">Visual</span>
-                    {isEditing ? (
-                        <textarea 
-                            value={scene.visual}
-                            onChange={(e) => handleSceneChange(index, 'visual', e.target.value)}
-                            className="w-full h-24 text-sm p-3 border border-[var(--border)] rounded-[var(--radius)] focus:border-[var(--accent)] outline-none resize-none bg-[var(--bg-color)]"
-                        />
-                    ) : (
-                        <p className="text-[var(--foreground)] leading-relaxed font-sans">{scene.visual}</p>
-                    )}
-                  </div>
-                  
-                  {/* Audio */}
-                  <div>
-                    <span className="block text-[10px] text-[var(--muted)] font-bold uppercase tracking-widest mb-2">Audio</span>
-                    {isEditing ? (
-                        <textarea 
-                            value={scene.audio}
-                            onChange={(e) => handleSceneChange(index, 'audio', e.target.value)}
-                            className="w-full h-24 text-sm p-3 border border-[var(--border)] rounded-[var(--radius)] focus:border-[var(--accent)] outline-none resize-none bg-[var(--bg-color)]"
-                        />
-                    ) : (
-                        <p className="text-[var(--muted)] leading-relaxed italic font-serif">"{scene.audio}"</p>
-                    )}
-                  </div>
-                  
-                  {/* Interaction */}
-                  <div className="md:col-span-2 bg-[var(--bg-color)] p-4 rounded-[var(--radius)] border border-[var(--border)] flex items-start">
-                      <div className="mr-3 mt-0.5">
-                        <span className="block w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-                      </div>
-                      <div className="flex-1">
-                        <span className="block text-[10px] text-[var(--muted)] font-bold uppercase tracking-widest mb-1">Interaction</span>
-                        {isEditing ? (
-                            <input 
-                                value={scene.interaction || ''}
-                                onChange={(e) => handleSceneChange(index, 'interaction', e.target.value)}
-                                className="w-full text-sm bg-transparent border-b border-[var(--border)] focus:border-[var(--accent)] outline-none font-medium"
-                            />
-                        ) : (
-                            <p className="text-[var(--foreground)] font-medium">{scene.interaction}</p>
+        <div className="space-y-8">
+          {viewMode === 'card' ? (
+            <>
+                {script_content?.map((scene: any, index: number) => (
+                    <div key={index} className="group relative pl-4">
+                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#E9E9E7] group-hover:bg-[#2383E2] transition-colors"></div>
+                    
+                    <div className="mb-2 flex items-center justify-between">
+                        <div className="flex items-baseline">
+                            {isEditing ? (
+                                <input 
+                                    value={scene.time}
+                                    onChange={(e) => handleSceneChange(index, 'time', e.target.value)}
+                                    className="text-base font-bold text-[#37352F] mr-3 font-mono border-b border-gray-300 w-20 focus:border-blue-500 outline-none bg-transparent"
+                                />
+                            ) : (
+                                <span className="text-base font-bold text-[#37352F] mr-3 font-mono">{scene.time}</span>
+                            )}
+                            <span className="text-xs font-medium text-[#37352F] opacity-40 uppercase">分镜 {index + 1}</span>
+                        </div>
+                        {isEditing && (
+                            <button onClick={() => removeScene(index)} className="text-gray-400 hover:text-red-600 p-1">
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         )}
-                      </div>
-                  </div>
-                  
-                  {/* Text */}
-                  <div className="md:col-span-2">
-                      <span className="block text-[10px] text-[var(--muted)] font-bold uppercase tracking-widest mb-2">Copy / Text Overlay</span>
-                      {isEditing ? (
-                          <input 
-                              value={scene.text || ''}
-                              onChange={(e) => handleSceneChange(index, 'text', e.target.value)}
-                              className="w-full text-xl font-serif pl-4 border-l-4 border-[var(--foreground)] py-1 focus:bg-[var(--bg-color)] outline-none"
-                          />
-                      ) : (
-                          <p className="text-[var(--foreground)] font-serif text-xl pl-4 border-l-4 border-[var(--foreground)] py-1 italic leading-relaxed">{scene.text}</p>
-                      )}
-                  </div>
+                    </div>
+                    
+                    <div className="notion-card p-5 hover:shadow-[rgba(15,15,15,0.1)_0px_5px_10px] transition-shadow">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        {/* Visual */}
+                        <div>
+                            <span className="block text-[10px] text-[#37352F] opacity-40 font-bold uppercase mb-1.5">画面 (Visual)</span>
+                            {isEditing ? (
+                                <textarea 
+                                    value={scene.visual}
+                                    onChange={(e) => handleSceneChange(index, 'visual', e.target.value)}
+                                    className="w-full h-20 text-sm p-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none"
+                                />
+                            ) : (
+                                <p className="text-[#37352F] leading-relaxed">{scene.visual}</p>
+                            )}
+                        </div>
+                        
+                        {/* Audio */}
+                        <div>
+                            <span className="block text-[10px] text-[#37352F] opacity-40 font-bold uppercase mb-1.5">音效 (Audio)</span>
+                            {isEditing ? (
+                                <textarea 
+                                    value={scene.audio}
+                                    onChange={(e) => handleSceneChange(index, 'audio', e.target.value)}
+                                    className="w-full h-20 text-sm p-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none"
+                                />
+                            ) : (
+                                <p className="text-[#37352F] opacity-80 leading-relaxed italic">"{scene.audio}"</p>
+                            )}
+                        </div>
+                        
+                        {/* Interaction */}
+                        <div className="md:col-span-2 bg-[#F7F7F5] p-2.5 rounded-sm border border-[#E9E9E7]">
+                            <span className="block text-[10px] text-[#37352F] opacity-50 font-bold uppercase mb-1">交互指令</span>
+                            {isEditing ? (
+                                <input 
+                                    value={scene.interaction || ''}
+                                    onChange={(e) => handleSceneChange(index, 'interaction', e.target.value)}
+                                    className="w-full text-sm bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none"
+                                />
+                            ) : (
+                                <p className="text-[#37352F] font-medium">{scene.interaction}</p>
+                            )}
+                        </div>
+                        
+                        {/* Text */}
+                        <div className="md:col-span-2">
+                            <span className="block text-[10px] text-[#37352F] opacity-40 font-bold uppercase mb-1.5">文案 (Text Overlay)</span>
+                            {isEditing ? (
+                                <input 
+                                    value={scene.text || ''}
+                                    onChange={(e) => handleSceneChange(index, 'text', e.target.value)}
+                                    className="w-full text-lg font-serif pl-3 border-l-2 border-[#37352F] py-0.5 focus:bg-gray-50 outline-none"
+                                />
+                            ) : (
+                                <p className="text-[#37352F] font-serif text-lg pl-3 border-l-2 border-[#37352F] py-0.5">{scene.text}</p>
+                            )}
+                        </div>
 
-                  {/* Prompt */}
-                  <div className="md:col-span-2 bg-gray-50 p-4 rounded-[var(--radius)] border border-gray-200 mt-2">
-                      <span className="block text-[10px] text-[var(--muted)] font-bold uppercase tracking-widest mb-2 flex justify-between">
-                          <span>AI Image Prompt</span>
-                          <span className="text-[9px] bg-white px-1 border rounded text-gray-400">Midjourney / SD</span>
-                      </span>
-                      {isEditing ? (
-                          <textarea 
-                              value={scene.prompt || ''}
-                              onChange={(e) => handleSceneChange(index, 'prompt', e.target.value)}
-                              className="w-full h-20 font-mono text-xs p-2 border border-[var(--border)] rounded-[var(--radius)] focus:border-[var(--accent)] outline-none resize-none bg-white"
-                          />
-                      ) : (
-                          <p className="text-gray-600 font-mono text-xs select-all break-all leading-relaxed bg-white p-2 rounded border border-gray-100">{scene.prompt}</p>
-                      )}
-                  </div>
-                </div>
-              </div>
+                        {/* Prompt */}
+                        <div className="md:col-span-2 bg-gray-50 p-2.5 rounded-sm border border-gray-200 mt-2">
+                            <span className="block text-[10px] text-[#37352F] opacity-40 font-bold uppercase mb-1">生成提示词 (Prompt)</span>
+                            {isEditing ? (
+                                <textarea 
+                                    value={scene.prompt || ''}
+                                    onChange={(e) => handleSceneChange(index, 'prompt', e.target.value)}
+                                    className="w-full h-16 font-mono text-xs p-2 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none"
+                                />
+                            ) : (
+                                <p className="text-gray-600 font-mono text-xs select-all">{scene.prompt}</p>
+                            )}
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                ))}
+            </>
+          ) : (
+            <div className="overflow-x-auto border border-[#E9E9E7] rounded-lg shadow-sm">
+                <table className="min-w-full divide-y divide-gray-200 bg-white text-xs">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider w-12 sticky left-0 bg-gray-50 z-10">#</th>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider w-24">时长</th>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">画面 (Visual)</th>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">音效 (Audio)</th>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">交互</th>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">文案</th>
+                            <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Prompt</th>
+                            {isEditing && <th className="px-3 py-3 w-10"></th>}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {script_content?.map((scene: any, index: number) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-3 py-3 font-medium text-gray-900 sticky left-0 bg-white group-hover:bg-gray-50 z-10 align-top">
+                                    {index + 1}
+                                </td>
+                                <td className="px-3 py-3 text-gray-500 font-mono align-top">
+                                    {isEditing ? (
+                                        <input 
+                                            value={scene.time}
+                                            onChange={(e) => handleSceneChange(index, 'time', e.target.value)}
+                                            className="w-full border-b border-gray-200 focus:border-blue-500 outline-none bg-transparent"
+                                        />
+                                    ) : scene.time}
+                                </td>
+                                <td className="px-3 py-3 text-gray-900 align-top">
+                                    {isEditing ? (
+                                        <textarea 
+                                            value={scene.visual}
+                                            onChange={(e) => handleSceneChange(index, 'visual', e.target.value)}
+                                            className="w-full h-24 p-1 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-xs"
+                                        />
+                                    ) : (
+                                        <div className="line-clamp-6">{scene.visual}</div>
+                                    )}
+                                </td>
+                                <td className="px-3 py-3 text-gray-500 italic align-top">
+                                    {isEditing ? (
+                                        <textarea 
+                                            value={scene.audio}
+                                            onChange={(e) => handleSceneChange(index, 'audio', e.target.value)}
+                                            className="w-full h-24 p-1 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-xs"
+                                        />
+                                    ) : (
+                                        <div className="line-clamp-6">"{scene.audio}"</div>
+                                    )}
+                                </td>
+                                <td className="px-3 py-3 text-gray-700 align-top">
+                                    {isEditing ? (
+                                        <textarea 
+                                            value={scene.interaction || ''}
+                                            onChange={(e) => handleSceneChange(index, 'interaction', e.target.value)}
+                                            className="w-full h-24 p-1 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-xs"
+                                        />
+                                    ) : (
+                                        <div className="line-clamp-6">{scene.interaction}</div>
+                                    )}
+                                </td>
+                                <td className="px-3 py-3 text-gray-900 font-serif border-l-2 border-gray-100 pl-3 align-top">
+                                    {isEditing ? (
+                                        <textarea 
+                                            value={scene.text || ''}
+                                            onChange={(e) => handleSceneChange(index, 'text', e.target.value)}
+                                            className="w-full h-24 p-1 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-xs font-sans"
+                                        />
+                                    ) : (
+                                        <div className="line-clamp-6">{scene.text}</div>
+                                    )}
+                                </td>
+                                <td className="px-3 py-3 text-gray-400 font-mono text-[10px] align-top">
+                                    {isEditing ? (
+                                        <textarea 
+                                            value={scene.prompt || ''}
+                                            onChange={(e) => handleSceneChange(index, 'prompt', e.target.value)}
+                                            className="w-full h-24 p-1 border border-gray-200 rounded focus:border-blue-500 outline-none resize-none text-[10px]"
+                                        />
+                                    ) : (
+                                        <div className="line-clamp-6 select-all cursor-text">{scene.prompt}</div>
+                                    )}
+                                </td>
+                                {isEditing && (
+                                    <td className="px-3 py-3 text-right align-top">
+                                        <button onClick={() => removeScene(index)} className="text-gray-400 hover:text-red-600">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </td>
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
-          ))}
+          )}
           
           {isEditing && (
               <button 
                 onClick={addScene}
-                className="w-full py-6 border-2 border-dashed border-[var(--border)] rounded-[var(--radius)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--accent-light)] transition-all flex items-center justify-center font-bold uppercase tracking-wider text-xs"
+                className="w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-gray-400 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50 transition-all flex items-center justify-center font-medium"
               >
                   <Plus className="w-5 h-5 mr-2" />
-                  Add New Scene
+                  添加分镜 (Add Scene)
               </button>
           )}
         </div>

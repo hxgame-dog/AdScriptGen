@@ -52,43 +52,42 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
 
   if (scripts.length === 0) {
     return (
-      <div className="bg-[var(--bg-color)] h-full flex flex-col items-center justify-center p-6 text-center border-l border-[var(--border)]">
-         <Clock className="w-6 h-6 text-[var(--muted)] mb-2 opacity-50" />
-         <p className="text-sm text-[var(--muted)] font-medium">No History Yet</p>
+      <div className="bg-[#F7F7F5] h-full flex flex-col items-center justify-center p-6 text-center border-l border-[#E9E9E7]">
+         <Clock className="w-6 h-6 text-[#9B9A97] mb-2" />
+         <p className="text-sm text-[#37352F] opacity-40">暂无历史记录</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[var(--bg-color)] h-full flex flex-col border-l border-[var(--border)]">
+    <div className="bg-[#F7F7F5] h-full flex flex-col border-l border-[#E9E9E7]">
       <div className="p-4 flex items-center justify-between mb-2">
         <div className="flex items-center">
-            <Clock className="w-4 h-4 mr-2 text-[var(--muted)]" />
-            <h2 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-widest">History</h2>
+            <Clock className="w-4 h-4 mr-2 text-[#37352F] opacity-60" />
+            <h2 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">历史记录</h2>
         </div>
         <button 
             onClick={() => setShowFilter(!showFilter)}
-            className={`p-1.5 rounded-[4px] transition-all ${showFilter ? 'text-[var(--accent)] bg-[var(--accent-light)]' : 'text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]'}`}
+            className={`p-1 rounded hover:bg-[#EFEFED] transition-colors ${showFilter ? 'text-blue-600 bg-blue-50' : 'text-[#37352F] opacity-60'}`}
         >
-            <Filter className="w-3.5 h-3.5" />
+            <Filter className="w-3 h-3" />
         </button>
       </div>
 
       {showFilter && (
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-3">
             <div className="relative">
                 <input 
                     value={filterText}
                     onChange={(e) => setFilterText(e.target.value)}
-                    placeholder="Filter by tag, user..."
-                    className="notion-input pl-8"
+                    placeholder="筛选: 标签, 用户..."
+                    className="w-full text-xs px-2 py-1.5 rounded border border-[#E9E9E7] focus:outline-none focus:border-blue-500 bg-white"
                     autoFocus
                 />
-                <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--muted)] opacity-50" />
                 {filterText && (
                     <button 
                         onClick={() => setFilterText('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)]"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                         <X className="w-3 h-3" />
                     </button>
@@ -97,21 +96,19 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
         </div>
       )}
 
-      <div className="overflow-y-auto flex-1 custom-scrollbar px-3 pb-3 space-y-3">
+      <div className="overflow-y-auto flex-1 custom-scrollbar px-2 pb-2">
         {filteredScripts.map((script) => (
           <div
             key={script.id}
-            className="w-full text-left p-3 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-md transition-all group relative"
+            className="w-full text-left p-3 mb-2 rounded-sm hover:bg-[#EFEFED] transition-colors group relative"
           >
             <div 
                 className="cursor-pointer"
                 onClick={() => onSelect(script)}
             >
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-sm font-bold text-[var(--foreground)] truncate pr-8 leading-tight">
-                    {script.title || "Untitled Script"}
-                    </h3>
-                </div>
+                <h3 className="text-sm font-medium text-[#37352F] truncate mb-1 pr-12">
+                {script.title || "未命名脚本"}
+                </h3>
                 
                 {/* Parameters Tags */}
                 {(() => {
@@ -144,15 +141,15 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                         return (
                             <div className="mb-2">
                                 {gameName && (
-                                    <div className="text-[10px] text-[var(--muted)] font-bold uppercase tracking-wider mb-1.5 flex items-center">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mr-1.5"></span>
+                                    <div className="text-[10px] text-gray-500 font-semibold mb-1 opacity-80 flex items-center">
+                                        <span className="w-1 h-1 rounded-full bg-gray-400 mr-1.5"></span>
                                         {gameName}
                                     </div>
                                 )}
                                 {tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="flex flex-wrap gap-1">
                                         {tags.map((tag, i) => (
-                                            <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded-[3px] font-medium border ${TAG_COLORS[i % TAG_COLORS.length].replace('bg-', 'bg-opacity-10 bg-').replace('border-', 'border-opacity-20 border-')}`}>
+                                            <span key={i} className={`text-[9px] px-1 py-0.5 rounded-sm opacity-80 ${TAG_COLORS[i % TAG_COLORS.length]}`}>
                                                 {tag}
                                             </span>
                                         ))}
@@ -164,34 +161,34 @@ export default function HistoryList({ scripts, onSelect, onDelete, onRename }: H
                     return null;
                 })()}
 
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-[var(--border)] border-dashed">
-                    <div className="flex items-center text-[10px] text-[var(--muted)] space-x-2 font-mono">
-                        <span>{new Date(script.createdAt).toLocaleDateString()}</span>
-                        {script.creator && script.creator !== 'Anonymous' && (
-                            <span className="font-bold text-[var(--accent)]">@{script.creator}</span>
-                        )}
-                    </div>
-                    <span className="text-[9px] text-[var(--muted)] font-mono opacity-60">
-                        {script.modelUsed}
-                    </span>
+                <div className="flex items-center justify-between">
+                <div className="flex items-center text-[10px] text-[#37352F] opacity-40 space-x-2">
+                    <span>{new Date(script.createdAt).toLocaleDateString()}</span>
+                    {script.creator && script.creator !== 'Anonymous' && (
+                        <span className="font-medium text-blue-600">@{script.creator}</span>
+                    )}
+                </div>
+                <span className="text-[10px] bg-white text-[#37352F] opacity-60 px-1.5 py-0.5 rounded border border-[#E9E9E7] truncate max-w-[80px]">
+                    {script.modelUsed}
+                </span>
                 </div>
             </div>
             
             {/* Actions */}
-            <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--surface)] pl-2">
+            <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                     onClick={(e) => { e.stopPropagation(); onRename(script.id, script.title); }}
-                    className="p-1 hover:bg-[var(--bg-color)] rounded text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
-                    title="Rename"
+                    className="p-1 hover:bg-white rounded text-gray-500 hover:text-blue-600"
+                    title="重命名"
                 >
-                    <Edit2 className="w-3.5 h-3.5" />
+                    <Edit2 className="w-3 h-3" />
                 </button>
                 <button 
                     onClick={(e) => { e.stopPropagation(); onDelete(script.id); }}
-                    className="p-1 hover:bg-[var(--bg-color)] rounded text-[var(--muted)] hover:text-red-600 transition-colors"
-                    title="Delete"
+                    className="p-1 hover:bg-white rounded text-gray-500 hover:text-red-600"
+                    title="删除"
                 >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                 </button>
             </div>
           </div>

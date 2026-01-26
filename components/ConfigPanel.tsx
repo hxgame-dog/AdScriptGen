@@ -258,13 +258,13 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
   };
 
   const renderField = (config: FieldOption) => (
-    <div key={config.key} className="relative group">
-      {config.key === 'visualTheme' && <div className="h-px bg-[var(--border)] my-6 w-full"></div>}
-      <div className="flex justify-between items-center mb-2">
-        <label className="block text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">{config.label}</label>
+    <div key={config.key} className="relative">
+      {config.key === 'visualTheme' && <div className="h-px bg-[#E9E9E7] my-4"></div>}
+      <div className="flex justify-between items-center mb-1.5">
+        <label className="block text-xs font-medium text-[#37352F] opacity-60 uppercase">{config.label}</label>
         {(params as any)[config.key] && (
-            <button onClick={() => clearField(config.key)} className="text-[10px] text-[var(--muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                Clear
+            <button onClick={() => clearField(config.key)} className="text-[10px] text-gray-400 hover:text-red-500">
+                清除
             </button>
         )}
       </div>
@@ -274,22 +274,22 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
             value={(params as any)[config.key] || ''}
             onChange={(e) => handleChange(config.key, e.target.value)}
             onFocus={() => setActiveDropdown(config.key)}
-            className="notion-input font-medium"
-            placeholder="Select or type..."
+            className="notion-input"
+            placeholder="选择或输入"
         />
         {activeDropdown === config.key && config.options.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-xl max-h-56 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute z-50 w-full mt-1 bg-white border border-[#E9E9E7] rounded-sm shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
                 {/* Backdrop to close */}
                 <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); }} />
-                <div className="relative z-50 p-1">
+                <div className="relative z-50">
                     {config.options.map((opt) => (
                         <div 
                             key={opt}
                             onClick={(e) => handleOptionSelect(config.key, opt, e)}
-                            className={`px-3 py-2 text-xs font-medium cursor-pointer rounded-[4px] flex justify-between items-center transition-colors ${isSelected(config.key, opt) ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'text-[var(--foreground)] hover:bg-[var(--bg-color)]'}`}
+                            className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center ${isSelected(config.key, opt) ? 'bg-blue-50 text-blue-600' : 'text-[#37352F] hover:bg-[#EFEFED]'}`}
                         >
                             <span>{opt}</span>
-                            {isSelected(config.key, opt) && <span className="text-[10px]">●</span>}
+                            {isSelected(config.key, opt) && <span className="text-xs">✓</span>}
                         </div>
                     ))}
                 </div>
@@ -300,45 +300,45 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
   );
 
   return (
-    <div className="bg-[var(--bg-color)] p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-8 text-[var(--foreground)]">
+    <div className="bg-[#F7F7F5] p-5 h-full flex flex-col border-r border-[#E9E9E7]">
+      <div className="flex items-center justify-between mb-6 text-[#37352F]">
         <div className="flex items-center">
-            <Settings2 className="w-4 h-4 mr-2 text-[var(--muted)]" />
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--foreground)]">Configuration</h2>
+            <Settings2 className="w-4 h-4 mr-2 opacity-60" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider">配置参数</h2>
         </div>
-        <Link href="/admin/config" className="px-2 py-1 hover:bg-[var(--accent-light)] rounded-[4px] transition-colors text-[10px] font-bold text-[var(--accent)] flex items-center uppercase tracking-wider">
-            <Edit className="w-3 h-3 mr-1.5" /> Manage
+        <Link href="/admin/config" className="p-1 hover:bg-[#EFEFED] rounded-sm transition-colors text-xs text-[#2383E2] flex items-center">
+            <Edit className="w-3 h-3 mr-1" /> 管理选项
         </Link>
       </div>
       
-      <div className="space-y-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+      <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
         <div className="group">
-          <label className="block text-[11px] font-bold text-[var(--muted)] mb-2 uppercase tracking-wider">API Key</label>
+          <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">API 密钥</label>
           <div className="relative">
             <input 
                 type="password" 
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="notion-input pr-8 font-mono text-xs"
-                placeholder="Gemini API Key"
+                className="notion-input pr-8"
+                placeholder="输入 Gemini API Key"
             />
             {loadingModels && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="w-3 h-3 animate-spin text-[var(--muted)]" />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
                 </div>
             )}
           </div>
-          <p className="text-[10px] text-[var(--muted)] mt-1.5 pl-1 opacity-60">Auto-fetches models on entry</p>
+          <p className="text-[10px] text-gray-400 mt-1 pl-1">输入后自动加载可用模型</p>
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-[var(--muted)] mb-2 uppercase tracking-wider">Model</label>
+          <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">模型选择</label>
           <div className="relative">
             <select 
                 value={params.model}
                 onChange={(e) => handleChange('model', e.target.value)}
-                className="notion-input appearance-none bg-no-repeat bg-[right_0.75rem_center] pr-8 cursor-pointer font-medium"
-                style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22none%22%20stroke%3D%22%23666666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', backgroundSize: '1rem auto' }}
+                className="notion-input appearance-none bg-no-repeat bg-[right_0.5rem_center] pr-8 cursor-pointer"
+                style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2337352F%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundSize: '0.65em auto' }}
             >
                 {models.map(m => (
                 <option key={m.name} value={m.name}>{m.displayName}</option>
@@ -348,41 +348,41 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-[var(--muted)] mb-2 uppercase tracking-wider">Duration</label>
+          <label className="block text-xs font-medium text-[#37352F] opacity-60 mb-1.5 uppercase">视频时长</label>
           <div className="flex space-x-2">
             {['15', '30'].map(d => (
                 <button
                     key={d}
                     onClick={() => handleChange('videoDuration', d)}
-                    className={`flex-1 py-2 text-xs font-bold rounded-[var(--radius)] border transition-all ${params.videoDuration === d ? 'bg-[var(--foreground)] text-white border-[var(--foreground)] shadow-md' : 'bg-white text-[var(--muted)] border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)]'}`}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-sm border transition-colors ${params.videoDuration === d ? 'bg-[#2383E2] text-white border-[#2383E2]' : 'bg-white text-[#37352F] border-[#E9E9E7] hover:bg-[#EFEFED]'}`}
                 >
-                    {d}s
+                    {d} 秒
                 </button>
             ))}
           </div>
-          <p className="text-[10px] text-[var(--muted)] mt-1.5 pl-1 opacity-60 font-mono">Est. Scenes: {parseInt(params.videoDuration || '30') / 5}</p>
+          <p className="text-[10px] text-gray-400 mt-1 pl-1">预计分镜数: {parseInt(params.videoDuration || '30') / 5}</p>
         </div>
 
         {fieldConfigs.map(config => renderField(config))}
 
       </div>
 
-      <div className="pt-6 mt-auto space-y-3 border-t border-[var(--border)]">
+      <div className="pt-6 mt-auto space-y-3">
         <button
           onClick={onCreateCustom}
-          className="notion-button notion-button-secondary w-full justify-center"
+          className="w-full py-2 bg-white border border-[#E9E9E7] text-[#37352F] rounded-sm text-sm font-medium hover:bg-[#EFEFED] transition-colors flex items-center justify-center"
         >
             <Edit className="w-4 h-4 mr-2" />
-            Create Custom Script
+            自定义脚本
         </button>
 
         <button
           onClick={handleGenerate}
           disabled={loading || !apiKey}
-          className="w-full notion-button notion-button-primary h-10 shadow-lg disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
+          className="w-full notion-button notion-button-primary h-10 flex justify-center items-center shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Sparkles className="w-4 h-4 mr-2" />}
-          {loading ? 'Generating...' : 'Generate Script'}
+          {loading ? '生成中...' : '生成脚本'}
         </button>
       </div>
     </div>
