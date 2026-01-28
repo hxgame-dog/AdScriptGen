@@ -13,6 +13,8 @@ interface Script {
   modelUsed: string;
   content: any; // Parsed content
   parameters?: any; // Parsed or string
+  videoUrl?: string; // New: Video URL
+  rating?: 'S' | 'A' | 'B' | 'C'; // New: Rating
 }
 
 const STATUS_CONFIG = {
@@ -65,6 +67,26 @@ export default function ProductionPage() {
       }
     } catch (e) {
       alert('状态更新失败');
+      fetchScripts(); // Revert
+    }
+  };
+
+  const updateField = async (id: string, field: string, value: any) => {
+    // Optimistic update
+    setScripts(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+
+    try {
+      const res = await fetch('/api/scripts', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, [field]: value })
+      });
+      if (!res.ok) {
+        throw new Error('Failed to update');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('更新失败');
       fetchScripts(); // Revert
     }
   };
@@ -137,6 +159,35 @@ export default function ProductionPage() {
                 </div>
                 <span className="border border-[#E9E9E7] px-1 rounded">{script.modelUsed}</span>
             </div>
+
+            {/* Video URL & Rating Inputs */}
+            {status === 'completed' && (
+                <div className="mb-3 space-y-2 bg-gray-50 p-2 rounded border border-gray-100">
+                    <div>
+                        <input 
+                            type="text" 
+                            placeholder="输入素材访问路径..." 
+                            className="w-full text-xs p-1.5 border border-gray-200 rounded focus:border-blue-500 outline-none bg-white"
+                            value={script.videoUrl || ''}
+                            onChange={(e) => updateField(script.id, 'videoUrl', e.target.value)}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-500 font-medium uppercase">素材评级</span>
+                        <select 
+                            className="text-xs p-1 border border-gray-200 rounded focus:border-blue-500 outline-none bg-white"
+                            value={script.rating || ''}
+                            onChange={(e) => updateField(script.id, 'rating', e.target.value)}
+                        >
+                            <option value="">未评级</option>
+                            <option value="S">S 级 (Excellent)</option>
+                            <option value="A">A 级 (Good)</option>
+                            <option value="B">B 级 (Average)</option>
+                            <option value="C">C 级 (Poor)</option>
+                        </select>
+                    </div>
+                </div>
+            )}
 
             {/* Actions */}
             <div className="flex justify-end space-x-2 pt-2 border-t border-[#E9E9E7] mt-2">

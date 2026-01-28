@@ -18,6 +18,8 @@ model Script {
   modelUsed   String
   creator     String   @default("Anonymous")
   status      String   @default("draft") // draft, pending, producing, completed
+  videoUrl    String?  // Optional video URL
+  rating      String?  // Optional rating (S, A, B, C)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 }

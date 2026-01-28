@@ -62,7 +62,7 @@ export async function DELETE(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, title, status } = body;
+    const { id, title, status, videoUrl, rating } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -71,6 +71,8 @@ export async function PATCH(request: Request) {
     const data: any = {};
     if (title) data.title = title;
     if (status) data.status = status;
+    if (videoUrl !== undefined) data.videoUrl = videoUrl;
+    if (rating !== undefined) data.rating = rating;
 
     const script = await prisma.script.update({
       where: { id },
