@@ -162,6 +162,13 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
   const handleEditChange = (field: string, value: string) => {
       setEditableScript((prev: any) => ({ ...prev, [field]: value }));
   };
+  
+  const handleGameNameChange = (value: string) => {
+    setEditableScript((prev: any) => ({
+      ...prev,
+      parameters: { ...prev.parameters, gameName: value }
+    }));
+  };
 
   const handleSceneChange = (index: number, field: string, value: string) => {
       const newContent = [...editableScript.script_content];
@@ -228,6 +235,8 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
     return match ? match[1] : str.split('(')[0].trim();
   };
 
+  const gameName = params?.gameName;
+
   const tags = params && typeof params === 'object' ? [
     extractTag(params.visualTheme),
     extractTag(params.cameraAngle),
@@ -256,21 +265,39 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
       <div className="p-4 border-b border-[#E9E9E7] flex justify-between items-center bg-white sticky top-0 z-10">
         {/* Left Side: Status / Title Input */}
         <div className="flex flex-col space-y-1 flex-1 mr-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 mb-1">
                 {isEditing ? (
-                    <input 
-                        value={editableScript.title || ''}
-                        onChange={(e) => handleEditChange('title', e.target.value)}
-                        className="text-sm font-medium text-[#37352F] border-b border-gray-300 focus:border-blue-500 outline-none w-full max-w-md"
-                        placeholder="请输入脚本标题..."
-                    />
+                    <div className="flex items-center space-x-2 w-full">
+                        <span className="text-xs text-gray-500 font-medium whitespace-nowrap">游戏:</span>
+                        <input
+                            value={editableScript?.parameters?.gameName || ''}
+                            onChange={(e) => handleGameNameChange(e.target.value)}
+                            className="text-xs px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:border-blue-500 outline-none w-32"
+                            placeholder="游戏名称"
+                        />
+                        <input 
+                            value={editableScript.title || ''}
+                            onChange={(e) => handleEditChange('title', e.target.value)}
+                            className="text-sm font-medium text-[#37352F] border-b border-gray-300 focus:border-blue-500 outline-none flex-1"
+                            placeholder="请输入脚本标题..."
+                        />
+                    </div>
                 ) : (
                     <>
+                        {gameName && (
+                            <div className="text-[10px] text-gray-500 font-semibold opacity-80 flex items-center bg-gray-50 px-1.5 py-0.5 rounded-full border border-gray-100">
+                                <span className="w-1 h-1 rounded-full bg-[#2383E2] mr-1.5"></span>
+                                {gameName}
+                            </div>
+                        )}
                         <span className="px-2 py-0.5 bg-[#E3E2E0] text-[#37352F] text-xs rounded-sm font-medium">
                             {isNew ? '新建脚本' : '已生成'}
                         </span>
-                        <span className="text-sm text-[#37352F] opacity-60 font-medium">
-                            {script_content?.length || 0} 个分镜
+                        <span className="text-sm text-[#37352F] opacity-60 font-medium truncate max-w-[200px]" title={script.title}>
+                             {script.title || '无标题脚本'}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                            • {script_content?.length || 0} 个分镜
                         </span>
                     </>
                 )}
