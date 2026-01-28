@@ -1,5 +1,6 @@
 import { Save, Copy, Check, FileText, Download, Edit3, Plus, Trash2, XCircle, LayoutList, Table as TableIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import HelpContent from './HelpContent';
 
 interface ScriptResultProps {
   script: any;
@@ -46,14 +47,9 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
   }
 
   if (!script) {
-    // ... existing empty render ...
     return (
-      <div className="h-full flex flex-col items-center justify-center text-[#37352F] opacity-40 bg-white rounded-sm">
-        <div className="w-16 h-16 bg-[#F7F7F5] rounded-full flex items-center justify-center mb-4">
-          <FileText className="w-8 h-8 text-[#9B9A97]" />
-        </div>
-        <p className="text-lg font-medium">暂无脚本生成</p>
-        <p className="text-sm mt-1">请在左侧配置参数并点击生成</p>
+      <div className="h-full flex flex-col bg-white rounded-sm overflow-y-auto custom-scrollbar">
+        <HelpContent />
       </div>
     );
   }
