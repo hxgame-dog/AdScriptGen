@@ -80,7 +80,7 @@ export default function HelpPage() {
                             看板用于追踪脚本从“创意”到“成品”的全生命周期。
                         </p>
                         <ul className="space-y-2 text-sm text-gray-600 list-disc pl-4">
-                            <li><strong>状态流转</strong>: 待提交 -&gt; 待制作 -> 制作中 -&gt; 已完成。</li>
+                            <li><strong>状态流转</strong>: 待提交 {"->"} 待制作 {"->"} 制作中 {"->"} 已完成。</li>
                             <li><strong>风格标签</strong>: 卡片自动显示视觉风格、运镜等标签，方便设计师快速理解。</li>
                             <li><strong>协作识别</strong>: 每个任务都会记录创建者，支持多人并行协作。</li>
                         </ul>
