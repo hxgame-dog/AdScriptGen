@@ -4,8 +4,35 @@ import { useState, useEffect } from 'react';
 import { Tool, Doc } from '@/components/types';
 import { ToolCard } from '@/components/ToolCard';
 import { DocList } from '@/components/DocList';
-import { LayoutGrid, BookOpen, Settings } from 'lucide-react';
+import { LayoutGrid, BookOpen, Settings, Sparkles, Film, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
+
+const CORE_TOOLS = [
+    {
+        id: 'generator',
+        name: '脚本生成器',
+        description: 'AI 驱动的广告脚本生成工具',
+        url: '/generator',
+        type: 'internal',
+        icon: Sparkles
+    },
+    {
+        id: 'production',
+        name: '制作管理',
+        description: '看板式管理脚本制作进度',
+        url: '/production',
+        type: 'internal',
+        icon: Film
+    },
+    {
+        id: 'assets',
+        name: '素材库',
+        description: '已完成素材与脚本归档',
+        url: '/assets',
+        type: 'internal',
+        icon: FolderOpen
+    }
+];
 
 export default function Dashboard() {
   const [tools, setTools] = useState<Tool[]>([]);
@@ -47,7 +74,32 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
         {/* Zone A: Tools */}
         <section className="lg:col-span-7 space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
+          
+          {/* Core Tools */}
+          <div>
+             <h2 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-3 opacity-60">核心应用</h2>
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {CORE_TOOLS.map(tool => (
+                    <Link 
+                        key={tool.id} 
+                        href={tool.url}
+                        className="flex flex-col p-4 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-1.5 bg-gray-50 rounded text-gray-600 group-hover:bg-white group-hover:shadow-sm transition-all border border-gray-100">
+                                <tool.icon size={18} strokeWidth={1.5} />
+                            </div>
+                            <h3 className="font-medium text-gray-900 truncate">{tool.name}</h3>
+                        </div>
+                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                            {tool.description}
+                        </p>
+                    </Link>
+                ))}
+             </div>
+          </div>
+
+          <div className="flex items-center gap-2 pb-3 border-b border-gray-200 mt-8">
             <LayoutGrid size={20} className="text-gray-500" />
             <h2 className="text-xl font-semibold text-[#37352F]">运营工具箱</h2>
           </div>

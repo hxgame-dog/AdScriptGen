@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, Filter, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Search, Filter, ExternalLink, Eye, X } from 'lucide-react';
+import ScriptResult from '@/components/ScriptResult';
 
 interface Script {
   id: string;
@@ -13,12 +14,15 @@ interface Script {
   parameters: any;
   videoUrl?: string;
   rating?: string;
+  content: any; // Added content
+  modelUsed: string;
 }
 
 export default function AssetsPage() {
   const [scripts, setScripts] = useState<Script[]>([]);
   const [filteredScripts, setFilteredScripts] = useState<Script[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedScript, setSelectedScript] = useState<Script | null>(null);
 
   // Filters
   const [gameFilter, setGameFilter] = useState('');
@@ -38,7 +42,8 @@ export default function AssetsPage() {
             .filter((s: any) => s.status === 'completed')
             .map((s: any) => ({
                 ...s,
-                parameters: typeof s.parameters === 'string' ? JSON.parse(s.parameters) : s.parameters
+                parameters: typeof s.parameters === 'string' ? JSON.parse(s.parameters) : s.parameters,
+                content: typeof s.content === 'string' ? JSON.parse(s.content) : s.content
             }));
         setScripts(completed);
         setFilteredScripts(completed);
@@ -147,24 +152,25 @@ export default function AssetsPage() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">素材链接</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建者</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">完成时间</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
                         <tr>
-                             <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                             <td colSpan={7} className="px-6 py-12 text-center text-gray-400 text-sm">
                                  加载中...
                              </td>
                         </tr>
                     ) : filteredScripts.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                            <td colSpan={7} className="px-6 py-12 text-center text-gray-400 text-sm">
                                 暂无符合条件的素材
                             </td>
                         </tr>
                     ) : (
                         filteredScripts.map((script) => (
-                            <tr key={script.id} className="hover:bg-gray-50 transition-colors">
+                            <tr key={script.id} className="hover:bg-gray-50 transition-colors group">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                                     {script.parameters?.gameName || '-'}
                                 </td>
@@ -203,6 +209,15 @@ export default function AssetsPage() {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {new Date(script.createdAt).toLocaleDateString()}
                                 </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button 
+                                        onClick={() => setSelectedScript(script)}
+                                        className="text-blue-600 hover:text-blue-900 flex items-center justify-end w-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Eye className="w-4 h-4 mr-1" />
+                                        查看脚本
+                                    </button>
+                                </td>
                             </tr>
                         ))
                     )}
@@ -212,6 +227,37 @@ export default function AssetsPage() {
         <div className="mt-4 text-xs text-gray-400 text-right">
             共 {filteredScripts.length} 个素材
         </div>
+
+        {/* Script Details Modal */}
+        {selectedScript && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-8">
+                <div className="bg-white rounded-lg shadow-2xl w-full max-w-5xl h-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center justify-between p-4 border-b border-[#E9E9E7]">
+                        <div className="flex items-center space-x-3">
+                            <span className="text-lg font-bold text-[#37352F]">{selectedScript.title}</span>
+                            <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded-full">{selectedScript.parameters?.gameName}</span>
+                        </div>
+                        <button 
+                            onClick={() => setSelectedScript(null)}
+                            className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-hidden relative">
+                        <ScriptResult 
+                            script={{
+                                ...selectedScript,
+                                ...selectedScript.content // Spread content (meta_analysis, script_content)
+                            }} 
+                            onSave={() => {}} 
+                            saving={false}
+                            isNew={false}
+                        />
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
     </div>
   );

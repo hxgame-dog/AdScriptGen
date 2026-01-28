@@ -6,7 +6,7 @@ interface ConfigPanelProps {
   onGenerate: (params: any) => void;
   loading: boolean;
   models: { name: string; displayName: string }[];
-  onCreateCustom: () => void;
+  onCreateCustom: (params?: any) => void;
 }
 
 interface FieldOption {
@@ -369,7 +369,7 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
 
       <div className="pt-6 mt-auto space-y-3">
         <button
-          onClick={onCreateCustom}
+          onClick={() => onCreateCustom(params)}
           className="w-full py-2 bg-white border border-[#E9E9E7] text-[#37352F] rounded-sm text-sm font-medium hover:bg-[#EFEFED] transition-colors flex items-center justify-center"
         >
             <Edit className="w-4 h-4 mr-2" />
