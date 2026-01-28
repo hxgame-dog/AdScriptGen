@@ -283,6 +283,9 @@ export default function ProductionPage() {
             <ArrowLeft className="w-5 h-5 text-[#37352F]" />
           </Link>
           <h1 className="text-base font-semibold text-[#37352F]">脚本制作看板</h1>
+          <Link href="/assets" className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded ml-4 flex items-center transition-colors">
+              <span className="mr-1">📂</span> 素材库
+          </Link>
         </div>
         <div className="flex items-center space-x-4 text-xs text-[#37352F]">
             <div className="flex items-center space-x-1">
