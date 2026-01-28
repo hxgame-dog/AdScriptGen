@@ -116,7 +116,7 @@ const DEFAULT_CONFIGS: FieldOption[] = [
     }
 ];
 
-export default function ConfigPanel({ onGenerate, loading, models: initialModels, onCreateCustom }: ConfigPanelProps) {
+export default function ConfigPanel({ onGenerate, loading, models: initialModels, onCreateCustom, onGameNamesChange }: ConfigPanelProps) {
   const [apiKey, setApiKey] = useState('');
   const [models, setModels] = useState(initialModels);
   const [loadingModels, setLoadingModels] = useState(false);
