@@ -8,9 +8,10 @@ interface ScriptResultProps {
   saving: boolean;
   streamingContent?: string;
   isNew?: boolean; // If true, start in edit mode
+  gameNames?: string[];
 }
 
-export default function ScriptResult({ script, onSave, onScriptChange, saving, streamingContent, isNew }: ScriptResultProps) {
+export default function ScriptResult({ script, onSave, onScriptChange, saving, streamingContent, isNew, gameNames = [] }: ScriptResultProps) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editableScript, setEditableScript] = useState<any>(null);
@@ -269,12 +270,23 @@ export default function ScriptResult({ script, onSave, onScriptChange, saving, s
                 {isEditing ? (
                     <div className="flex items-center space-x-2 w-full">
                         <span className="text-xs text-gray-500 font-medium whitespace-nowrap">游戏:</span>
-                        <input
-                            value={editableScript?.parameters?.gameName || ''}
-                            onChange={(e) => handleGameNameChange(e.target.value)}
-                            className="text-xs px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:border-blue-500 outline-none w-32"
-                            placeholder="游戏名称"
-                        />
+                        <div className="relative">
+                            <select
+                                value={editableScript?.parameters?.gameName || ''}
+                                onChange={(e) => handleGameNameChange(e.target.value)}
+                                className="text-xs px-2 py-1 pr-6 bg-gray-50 border border-gray-200 rounded focus:border-blue-500 outline-none w-auto max-w-[140px] appearance-none cursor-pointer truncate"
+                            >
+                                {gameNames.map(name => (
+                                    <option key={name} value={name}>{name}</option>
+                                ))}
+                                {!gameNames.includes(editableScript?.parameters?.gameName) && editableScript?.parameters?.gameName && (
+                                    <option value={editableScript.parameters.gameName}>{editableScript.parameters.gameName}</option>
+                                )}
+                            </select>
+                            <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </div>
                         <input 
                             value={editableScript.title || ''}
                             onChange={(e) => handleEditChange('title', e.target.value)}

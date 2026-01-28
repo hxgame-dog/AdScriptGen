@@ -25,6 +25,9 @@ export default function Home() {
   const [username, setUsername] = useState('Anonymous');
   const [showUserModal, setShowUserModal] = useState(false);
   const [newUsername, setNewUsername] = useState('');
+  
+  // Game Names from Config
+  const [gameNames, setGameNames] = useState<string[]>([]);
 
   // Fetch models and scripts on mount
   useEffect(() => {
@@ -469,6 +472,7 @@ export default function Home() {
             loading={loading} 
             models={models} 
             onCreateCustom={handleCreateCustom}
+            onGameNamesChange={setGameNames}
           />
         </div>
 
@@ -481,6 +485,7 @@ export default function Home() {
             saving={saving}
             streamingContent={streamingContent}
             isNew={isCreatingCustom}
+            gameNames={gameNames}
           />
         </div>
 

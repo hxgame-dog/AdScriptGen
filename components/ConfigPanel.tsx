@@ -7,6 +7,7 @@ interface ConfigPanelProps {
   loading: boolean;
   models: { name: string; displayName: string }[];
   onCreateCustom: (params?: any) => void;
+  onGameNamesChange?: (names: string[]) => void;
 }
 
 interface FieldOption {
@@ -192,6 +193,16 @@ export default function ConfigPanel({ onGenerate, loading, models: initialModels
       
       loadConfigs();
   }, []);
+  
+  // Notify parent about available game names
+  useEffect(() => {
+      if (onGameNamesChange) {
+          const gameNameConfig = fieldConfigs.find(c => c.key === 'gameName');
+          if (gameNameConfig) {
+              onGameNamesChange(gameNameConfig.options);
+          }
+      }
+  }, [fieldConfigs, onGameNamesChange]);
 
   // Fetch models when API key changes (debounced)
   useEffect(() => {
